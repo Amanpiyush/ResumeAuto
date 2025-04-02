@@ -1,10 +1,10 @@
-# Resume Builder
+# ResumeAuto - Modern Resume Builder
+
+Tailoring the Resume according to Job Description
+
+## About
 
 A modern, feature-rich resume builder application designed to help users create professional resumes tailored to their specific needs.
-
-## Ownership
-
-This application is owned by Hacx Singh. Copyright © 2023-2024. All rights reserved.
 
 ## Features
 
