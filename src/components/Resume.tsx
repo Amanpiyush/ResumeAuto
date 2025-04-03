@@ -503,13 +503,13 @@ export const Resume: React.FC<ResumeProps> = ({
         currentPageWeight += section.weight;
       });
       
-      return (
+  return (
         <Box>
           {pagesContent.map((pageSections, pageIndex) => (
             <React.Fragment key={`page-${pageIndex + 1}`}>
               {/* Page content */}
               <Box 
-                sx={{ 
+      sx={{ 
                   minHeight: pageIndex === pagesContent.length - 1 ? 'auto' : '10.5in',
                   maxHeight: pageIndex === pagesContent.length - 1 ? 'auto' : '10.5in',
                   position: 'relative',
@@ -688,7 +688,7 @@ export const Resume: React.FC<ResumeProps> = ({
         </Typography>
         <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
                           {items.join(', ')}
-                        </Typography>
+        </Typography>
                       </Box>
                     ))}
                 </Box>
@@ -724,9 +724,9 @@ export const Resume: React.FC<ResumeProps> = ({
                       {edu.degree} {edu.gpa && `GPA: ${edu.gpa}`}
                     </Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
+          <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
                         {edu.location}
-                      </Typography>
+          </Typography>
                       <Typography variant="body2" sx={{ fontFamily: fontFamily, textAlign: 'right', minWidth: '80px' }}>
                         {edu.date}
                       </Typography>
@@ -769,16 +769,16 @@ export const Resume: React.FC<ResumeProps> = ({
           <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
                       {cert.details}
                       {cert.company && <> | {cert.company}</>}
-                    </Typography>
-                  </Box>
+          </Typography>
+        </Box>
                 ))}
               </Box>
             )}
-          </Box>
-          
+      </Box>
+
           {/* Right Column - Professional Summary, Experience, Projects, Publications */}
           <Box sx={{ width: '70%', display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Summary Section */}
+      {/* Summary Section */}
             {data.summary && (
               <Box mb={1.5}>
                 <Typography variant="h6" sx={{ 
@@ -1181,7 +1181,7 @@ export const Resume: React.FC<ResumeProps> = ({
               <Typography variant="body2" sx={{ fontFamily: fontFamily, pr: 1, flex: '1 1 auto' }}>
               <strong>{cert.name}:</strong> {cert.details}
                 {cert.company && <> | <strong>Provider:</strong> {cert.company}</>}
-              </Typography>
+            </Typography>
               {cert.date && (
                 <Typography variant="body2" sx={{ fontFamily: fontFamily, textAlign: 'right', minWidth: '80px', flex: '0 0 auto' }}>
                   {cert.date}
@@ -1253,8 +1253,8 @@ export const Resume: React.FC<ResumeProps> = ({
                 </Typography>
               )}
             </Box>
-            </Box>
-          ))}
+        </Box>
+      ))}
         </Box>
     ))
   );

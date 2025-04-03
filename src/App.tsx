@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Container, Button, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Snackbar, Alert, Paper, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText, Chip, GlobalStyles, IconButton, Grid } from '@mui/material';
+import { Box, Container, Button, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Snackbar, Alert, Paper, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText, Chip, GlobalStyles, IconButton, Grid, Tab, Tabs } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import Resume from './components/Resume';
 import ResumeForm from './components/ResumeForm';
@@ -7,6 +7,22 @@ import { ResumeData } from './components/Resume';
 
 // Define page count type to be used throughout the app
 type PageCountType = 1 | 2 | 3 | 4 | 5;
+
+// Define cover letter data type
+interface CoverLetterData {
+  recipientCompany: string;
+  recipientName: string;
+  jobTitle: string;
+  jobId?: string;
+  senderName: string;
+  senderAddress: string;
+  senderCity: string;
+  senderEmail: string;
+  senderPhone: string;
+  letterContent: string;
+  style: 'pro' | 'normal';
+  date: string;
+}
 
 const fonts = [
   'Times New Roman',
@@ -126,10 +142,35 @@ function App() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [showCoverLetterDialog, setShowCoverLetterDialog] = useState<boolean>(false);
+  const [coverLetterData, setCoverLetterData] = useState<CoverLetterData>({
+    recipientCompany: '',
+    recipientName: 'Hiring Manager',
+    jobTitle: '',
+    jobId: '',
+    senderName: '',
+    senderAddress: '',
+    senderCity: '',
+    senderEmail: '',
+    senderPhone: '',
+    letterContent: '',
+    style: 'normal',
+    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  });
+  const [generatedCoverLetter, setGeneratedCoverLetter] = useState<string>('');
+  const [coverLetterPreview, setShowCoverLetterPreview] = useState<boolean>(false);
+  const coverLetterRef = useRef<HTMLDivElement>(null);
 
+  // Handle printing resume
   const handlePrint = useReactToPrint({
     contentRef: resumeRef,
     documentTitle: 'Resume',
+  });
+
+  // Handle printing cover letter
+  const handlePrintCoverLetter = useReactToPrint({
+    contentRef: coverLetterRef,
+    documentTitle: 'Cover Letter',
   });
 
   const handleJobRoleSelect = (role: string) => {
@@ -558,6 +599,69 @@ function App() {
     setSnackbarOpen(false);
   };
 
+  // Handle cover letter dialog open
+  const handleOpenCoverLetterDialog = () => {
+    // Pre-fill with data from resume if available
+    setCoverLetterData({
+      ...coverLetterData,
+      senderName: resumeData.personalInfo.name || '',
+      senderEmail: resumeData.personalInfo.email || '',
+      senderPhone: resumeData.personalInfo.mobile || '',
+      senderCity: resumeData.personalInfo.location || '',
+      jobTitle: selectedJobRole || '',
+    });
+    setShowCoverLetterDialog(true);
+  };
+
+  // Handle cover letter dialog close
+  const handleCloseCoverLetterDialog = () => {
+    setShowCoverLetterDialog(false);
+  };
+
+  // Update cover letter data
+  const handleCoverLetterDataChange = (field: keyof CoverLetterData, value: string) => {
+    setCoverLetterData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Generate cover letter based on resume data and job description
+  const generateCoverLetter = () => {
+    // Gather skills and experience from resume
+    const skills = Object.values(resumeData.skills).flat().join(', ');
+    const hasEducation = resumeData.education.length > 0;
+    const hasProjects = resumeData.projects.length > 0;
+    const hasCertifications = resumeData.certifications.length > 0;
+    
+    // Generate a professional cover letter based on the data
+    let content = '';
+    
+    if (coverLetterData.style === 'pro') {
+      content = `I am excited to apply for the ${coverLetterData.jobTitle} position ${coverLetterData.jobId ? `(Requisition ID: ${coverLetterData.jobId})` : ''} in ${coverLetterData.senderCity}. As a ${selectedJobRole || 'professional'} with a specialization in ${skills.split(',')[0]}, I bring a solid foundation in ${skills.split(',').slice(0, 3).join(', ')}, and ${skills.split(',').slice(3, 5).join(', ')}. My hands-on experience with ${hasProjects ? resumeData.projects[0].title : 'various projects'} equips me to monitor, analyze, and safeguard sensitive information effectively.
+
+In my ${hasEducation ? `academic journey at ${resumeData.education[0].school}` : 'professional career'} and project endeavors, I ${hasProjects ? `led the development of ${resumeData.projects[0].title}` : 'have worked on several key initiatives'}, ${hasProjects ? resumeData.projects[0].description : 'demonstrating my technical capabilities'}. Additionally, my experience in ${hasProjects && resumeData.projects.length > 1 ? resumeData.projects[1].title : 'various technical domains'} demonstrates my ability to innovate and implement advanced techniques, ensuring optimal outcomes.
+
+I am particularly drawn to this role's emphasis on proactive measures, analytical thinking, and stakeholder collaboration. With my strong analytical skills and commitment to excellence, I am eager to contribute to ${coverLetterData.recipientCompany}'s mission. I look forward to the opportunity to bring my skills and passion to your team.
+
+Thank you for considering my application. I am excited about the prospect of contributing to your organization's mission and would welcome the opportunity for an interview.`;
+    } else {
+      content = `I am writing to express my interest in the ${coverLetterData.jobTitle} position at ${coverLetterData.recipientCompany}. With my background in ${selectedJobRole || 'the field'} and expertise in ${skills.split(',').slice(0, 3).join(', ')}, I believe I would be a valuable addition to your team.
+
+Throughout my career, I have developed strong skills in ${skills.split(',').slice(3, 6).join(', ')}. ${hasProjects ? `My work on ${resumeData.projects[0].title} demonstrates my ability to ${resumeData.projects[0].description.substring(0, 100)}...` : 'I have consistently demonstrated my ability to solve complex problems and deliver results.'} ${hasCertifications ? `I have also earned certifications in ${resumeData.certifications.map(cert => cert.name).join(', ')}, which have enhanced my knowledge in these areas.` : ''}
+
+I am impressed by ${coverLetterData.recipientCompany}'s reputation in the industry and would be excited to contribute to your continued success. I am confident that my skills and experiences align well with the requirements of this position.
+
+I look forward to the opportunity to discuss how my qualifications can benefit your team. Thank you for considering my application.`;
+    }
+    
+    setGeneratedCoverLetter(content);
+    setCoverLetterData(prev => ({ ...prev, letterContent: content }));
+    setShowCoverLetterPreview(true);
+  };
+
+  // Toggle cover letter style
+  const handleCoverLetterStyleChange = (style: 'normal' | 'pro') => {
+    setCoverLetterData(prev => ({ ...prev, style }));
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* App content */}
@@ -700,6 +804,7 @@ function App() {
                 sx={{
                   backgroundColor: '#1976d2',
                   '&:hover': { backgroundColor: '#1565c0' },
+                  flex: '1',
                 }}
               >
                 Convert Content
@@ -712,10 +817,14 @@ function App() {
                   '&:hover': { 
                     backgroundColor: isFinished ? '#388e3c' : '#d32f2f' 
                   },
+                  flex: '1',
                 }}
               >
                 {isFinished ? `Your ATS Score: ${atsScore}%` : 'Finish Resume'}
               </Button>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
               <Button
                 variant="outlined"
                 onClick={resetResume}
@@ -726,6 +835,7 @@ function App() {
                     borderColor: '#ed6c02',
                     backgroundColor: 'rgba(255, 152, 0, 0.04)'
                   },
+                  flex: '1',
                 }}
               >
                 Reset Resume
@@ -740,9 +850,25 @@ function App() {
                     borderColor: '#1976d2',
                     backgroundColor: 'rgba(33, 150, 243, 0.04)'
                   },
+                  flex: '1',
                 }}
               >
-                Fill Dummy Content
+                Fill Dummy
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleOpenCoverLetterDialog}
+                sx={{
+                  borderColor: '#4caf50',
+                  color: '#4caf50',
+                  '&:hover': { 
+                    borderColor: '#388e3c',
+                    backgroundColor: 'rgba(76, 175, 80, 0.04)'
+                  },
+                  flex: '1',
+                }}
+              >
+                Cover Letter
               </Button>
             </Box>
           </Paper>
@@ -758,112 +884,112 @@ function App() {
 
         {/* Right Side - Preview */}
         <Box sx={{ position: 'sticky', top: 20 }}>
-              <Paper 
-                elevation={3} 
-                sx={{ 
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                }}
-              >
-                {/* ATS Score Display */}
-                <Box sx={{ 
-                  p: 2, 
-                  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-                  backgroundColor: '#f8fbff',
-                  borderRadius: '8px 8px 0 0'
-                }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    mb: 1,
-                    borderRadius: 1,
-                    p: 1,
-                    backgroundColor: 'rgba(25, 118, 210, 0.05)',
-                    border: '1px solid rgba(25, 118, 210, 0.1)'
-                  }}>
-                    <Typography variant="body2" fontWeight="medium" sx={{ color: '#1976d2' }}>
-                      ATS Compatibility Score
-            </Typography>
-                    <Typography 
-                      variant="body2" 
-                      fontWeight="bold" 
-                      sx={{ 
-                        color: atsScore === null ? 'text.secondary' : 
-                              atsScore > 70 ? '#4caf50' : 
-                              atsScore > 40 ? '#ff9800' : '#f44336',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        transition: 'color 0.5s ease-in-out'
-                      }}
-                    >
-                      {atsScore !== null && (
-                        <span 
-                          role="img" 
-                          aria-label={atsScore > 70 ? "good" : atsScore > 40 ? "warning" : "poor"}
-                        >
-                          {atsScore > 70 ? '✅' : atsScore > 40 ? '⚠️' : '❌'}
-                        </span>
-                      )}
-                      {atsScore === null ? 'Not calculated' : `${atsScore}%`}
-                    </Typography>
-                  </Box>
-                  
-                  {/* Animated progress bar */}
-                  <Box sx={{ width: '100%' }}>
-                    <Box 
-                      sx={{ 
-                        height: 10, 
-                        width: '100%', 
-                        bgcolor: 'rgba(0, 0, 0, 0.06)',
-                        borderRadius: 5,
-                        overflow: 'hidden',
-                        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
-                        border: '1px solid rgba(0,0,0,0.03)'
-                      }}
-                    >
-                      <Box 
-                        sx={{ 
-                          height: '100%', 
-                          width: `${atsScore || 0}%`, 
-                          bgcolor: atsScore && atsScore > 70 ? '#4caf50' : 
-                                 atsScore && atsScore > 40 ? '#ff9800' : 
-                                 '#f44336',
-                          transition: 'width 1s ease-in-out'
-                        }} 
-                      />
-                    </Box>
-                  </Box>
-                  
-                  {/* Score breakdown */}
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            {/* ATS Score Display */}
+            <Box sx={{ 
+              p: 2, 
+              borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+              backgroundColor: '#f8fbff',
+              borderRadius: '8px 8px 0 0'
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                mb: 1,
+                borderRadius: 1,
+                p: 1,
+                backgroundColor: 'rgba(25, 118, 210, 0.05)',
+                border: '1px solid rgba(25, 118, 210, 0.1)'
+              }}>
+                <Typography variant="body2" fontWeight="medium" sx={{ color: '#1976d2' }}>
+                  ATS Compatibility Score
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  fontWeight="bold" 
+                  sx={{ 
+                    color: atsScore === null ? 'text.secondary' : 
+                          atsScore > 70 ? '#4caf50' : 
+                          atsScore > 40 ? '#ff9800' : '#f44336',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    transition: 'color 0.5s ease-in-out'
+                  }}
+                >
                   {atsScore !== null && (
-                    <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        Incomplete
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        Excellent
-                      </Typography>
-                    </Box>
+                    <span 
+                      role="img" 
+                      aria-label={atsScore > 70 ? "good" : atsScore > 40 ? "warning" : "poor"}
+                    >
+                      {atsScore > 70 ? '✅' : atsScore > 40 ? '⚠️' : '❌'}
+                    </span>
                   )}
+                  {atsScore === null ? 'Not calculated' : `${atsScore}%`}
+                </Typography>
+              </Box>
+              
+              {/* Animated progress bar */}
+              <Box sx={{ width: '100%' }}>
+                <Box 
+                  sx={{ 
+                    height: 10, 
+                    width: '100%', 
+                    bgcolor: 'rgba(0, 0, 0, 0.06)',
+                    borderRadius: 5,
+                    overflow: 'hidden',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
+                    border: '1px solid rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      height: '100%', 
+                      width: `${atsScore || 0}%`, 
+                      bgcolor: atsScore && atsScore > 70 ? '#4caf50' : 
+                             atsScore && atsScore > 40 ? '#ff9800' : 
+                             '#f44336',
+                      transition: 'width 1s ease-in-out'
+                    }} 
+                  />
                 </Box>
+              </Box>
+              
+              {/* Score breakdown */}
+              {atsScore !== null && (
+                <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    Incomplete
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    Excellent
+                  </Typography>
+                </Box>
+              )}
+            </Box>
 
-                {/* Action Buttons */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  p: 2,
-                  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-                  gap: 1.5, 
-                }}>
+            {/* Action Buttons */}
+            <Box sx={{ 
+              display: 'flex', 
+              p: 2,
+              borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+              gap: 1.5, 
+            }}>
               <Button
                 variant="contained"
-                    onClick={handleOpenDownloadDialog}
-                    startIcon={<span role="img" aria-label="download">📥</span>}
+                onClick={handleOpenDownloadDialog}
+                startIcon={<span role="img" aria-label="download">📥</span>}
                 sx={{
                   backgroundColor: '#1976d2',
                   '&:hover': { backgroundColor: '#1565c0' },
-                      flexGrow: 1
+                  flexGrow: 1
                 }}
               >
                 Download PDF
@@ -874,13 +1000,13 @@ function App() {
                 sx={{
                   borderColor: '#1976d2',
                   color: '#1976d2',
-                  '&:hover': {
+                  '&:hover': { 
                     borderColor: '#1565c0',
                     backgroundColor: 'rgba(25, 118, 210, 0.04)',
                   },
                 }}
               >
-                    Save
+                Save
               </Button>
               <Button
                 variant="outlined"
@@ -894,7 +1020,7 @@ function App() {
                   },
                 }}
               >
-                    Open
+                Open
                 <input
                   type="file"
                   hidden
@@ -904,106 +1030,106 @@ function App() {
               </Button>
             </Box>
 
-                {/* Resume Render Area */}
+            {/* Resume Render Area */}
+            <Box sx={{ 
+              p: 2, 
+              maxHeight: '70vh', 
+              overflow: 'auto',
+              position: 'relative' 
+            }}>
+              {/* Bottom Overflow Warning */}
+              {contentOverflow && (
                 <Box sx={{ 
-                  p: 2, 
-                  maxHeight: '70vh', 
-                  overflow: 'auto',
-                  position: 'relative' 
+                  position: 'sticky', 
+                  bottom: 0, 
+                  width: '100%',
+                  textAlign: 'center',
+                  backgroundColor: 'rgba(255, 244, 229, 0.9)',
+                  color: '#ed6c02',
+                  p: 1,
+                  fontSize: '0.85rem',
+                  fontWeight: 'medium',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(237, 108, 2, 0.2)',
+                  backdropFilter: 'blur(4px)',
+                  zIndex: 10,
+                  mb: 1,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                 }}>
-                  {/* Bottom Overflow Warning */}
-                  {contentOverflow && (
-                    <Box sx={{ 
-                      position: 'sticky', 
-                      bottom: 0, 
-                      width: '100%',
-                      textAlign: 'center',
-                      backgroundColor: 'rgba(255, 244, 229, 0.9)',
-                      color: '#ed6c02',
-                      p: 1,
-                      fontSize: '0.85rem',
-                      fontWeight: 'medium',
-                      borderRadius: '4px',
-                      border: '1px solid rgba(237, 108, 2, 0.2)',
-                      backdropFilter: 'blur(4px)',
-                      zIndex: 10,
-                      mb: 1,
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                    }}>
-                      Content exceeds {pageCount} {pageCount === 1 ? 'page' : 'pages'} - {pageCount < 5 ? `Switch to ${pageCount + 1} pages or ` : ''}reduce content
-                    </Box>
-                  )}
+                  Content exceeds {pageCount} {pageCount === 1 ? 'page' : 'pages'} - {pageCount < 5 ? `Switch to ${pageCount + 1} pages or ` : ''}reduce content
+              </Box>
+              )}
 
-                  {/* Page Count Selector */}
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center',
-                    mb: 2,
-                    gap: 1.5
-                  }}>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      Pages:
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                      {[1, 2, 3, 4, 5].map((count) => (
-                        <Box 
-                          key={count}
-                          onClick={() => handlePageCountChange(count as PageCountType)}
-                          sx={{
-                            width: 28,
-                            height: 28,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: `1px solid ${count === pageCount ? '#1976d2' : 'rgba(0,0,0,0.12)'}`,
-                            borderRadius: '4px',
-                            backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.1)' : 'white',
-                            color: count === pageCount ? '#1976d2' : 'text.secondary',
-                            fontWeight: count === pageCount ? 'bold' : 'normal',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              borderColor: '#1976d2',
-                              backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.15)' : 'rgba(25, 118, 210, 0.05)',
-                            }
-                          }}
-                        >
-                          {count}
-                        </Box>
-                      ))}
+              {/* Page Count Selector */}
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                mb: 2,
+                gap: 1.5
+              }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Pages:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  {[1, 2, 3, 4, 5].map((count) => (
+                    <Box 
+                      key={count}
+                      onClick={() => handlePageCountChange(count as PageCountType)}
+                      sx={{
+                        width: 28,
+                        height: 28,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: `1px solid ${count === pageCount ? '#1976d2' : 'rgba(0,0,0,0.12)'}`,
+                        borderRadius: '4px',
+                        backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.1)' : 'white',
+                        color: count === pageCount ? '#1976d2' : 'text.secondary',
+                        fontWeight: count === pageCount ? 'bold' : 'normal',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          borderColor: '#1976d2',
+                          backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.15)' : 'rgba(25, 118, 210, 0.05)',
+                        }
+                      }}
+                    >
+                      {count}
                     </Box>
-                    {contentOverflow && pageCount < 5 && (
-                      <Button 
-                        size="small"
-                        variant="text"
-                        onClick={() => handlePageCountChange(Math.min(5, pageCount + 1) as PageCountType)}
-                        sx={{ 
-                          minWidth: 'auto', 
-                          p: 0.5, 
-                          fontSize: '0.75rem',
-                          color: '#1976d2',
-                          '&:hover': {
-                            backgroundColor: 'rgba(25, 118, 210, 0.05)',
-                          }
-                        }}
-                      >
-                        Add page
-                      </Button>
-                    )}
-                  </Box>
-                  
-                  <Box ref={resumeRef}>
-                    <Resume
-                      data={resumeData}
-                      fontFamily={selectedFont}
-                      template={selectedTemplate}
-                      pageCount={pageCount}
-                      onPageOverflow={handlePageOverflow}
-                    />
-                  </Box>
+                  ))}
                 </Box>
-              </Paper>
+                {contentOverflow && pageCount < 5 && (
+                  <Button 
+                    size="small"
+                    variant="text"
+                    onClick={() => handlePageCountChange(Math.min(5, pageCount + 1) as PageCountType)}
+                    sx={{ 
+                      minWidth: 'auto', 
+                      p: 0.5, 
+                      fontSize: '0.75rem',
+                      color: '#1976d2',
+                      '&:hover': {
+                        backgroundColor: 'rgba(25, 118, 210, 0.05)',
+                      }
+                    }}
+                  >
+                    Add page
+                  </Button>
+                )}
+              </Box>
+
+              <Box ref={resumeRef}>
+                <Resume
+                  data={resumeData} 
+                  fontFamily={selectedFont}
+                  template={selectedTemplate}
+                  pageCount={pageCount}
+                  onPageOverflow={handlePageOverflow}
+                />
+              </Box>
+            </Box>
+          </Paper>
         </Box>
       </Box>
 
@@ -1761,7 +1887,7 @@ function App() {
                     <Box sx={{ textAlign: 'center', width: '100%' }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2', mb: 1 }}>
                         Multiple Pages
-                      </Typography>
+                </Typography>
                       
                       {/* Page count selector */}
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 1 }}>
@@ -1788,9 +1914,9 @@ function App() {
                             }}
                           >
                             {count}
-                          </Box>
+              </Box>
                         ))}
-                      </Box>
+          </Box>
                       
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         {contentOverflow 
@@ -1869,6 +1995,21 @@ function App() {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* Add Cover Letter Button */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+        <Button
+          variant="contained"
+          onClick={() => handlePrint()}
+          sx={{
+            backgroundColor: '#4caf50',
+            '&:hover': { backgroundColor: '#388e3c' },
+            px: 4
+          }}
+        >
+          Download Resume
+        </Button>
+      </Box>
     </Container>
   </Box>
 
@@ -1888,6 +2029,389 @@ function App() {
       © {new Date().getFullYear()} Resume Builder by Hacx Singh. All rights reserved.
     </Typography>
   </Box>
+
+  {/* Cover Letter Dialog */}
+  <Dialog 
+    open={showCoverLetterDialog} 
+    onClose={handleCloseCoverLetterDialog}
+    maxWidth="md"
+    fullWidth
+    PaperProps={{
+      sx: {
+        borderRadius: 2,
+        overflow: 'hidden',
+        boxShadow: '0 8px 32px rgba(76, 175, 80, 0.2)',
+      }
+    }}
+  >
+    <DialogTitle sx={{ 
+      background: 'linear-gradient(135deg, #4caf50, #81c784)',
+      color: 'white',
+      py: 2.5,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <span role="img" aria-label="cover letter" style={{ fontSize: '1.5rem' }}>📝</span>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Create Professional Cover Letter
+        </Typography>
+      </Box>
+      <IconButton 
+        onClick={handleCloseCoverLetterDialog}
+        sx={{ color: 'white' }}
+      >
+        <span role="img" aria-label="close">✕</span>
+      </IconButton>
+    </DialogTitle>
+    
+    <DialogContent sx={{ px: 3, py: 3 }}>
+      {coverLetterPreview ? (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, gap: 2 }}>
+            <Button 
+              variant="outlined" 
+              onClick={() => setShowCoverLetterPreview(false)}
+              sx={{ borderColor: '#1976d2', color: '#1976d2' }}
+            >
+              Edit
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={() => handlePrintCoverLetter()}
+              sx={{ bgcolor: '#1976d2' }}
+            >
+              Download
+            </Button>
+          </Box>
+          
+          {/* Cover Letter Preview */}
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 4, 
+              maxHeight: '60vh', 
+              overflow: 'auto',
+              bgcolor: coverLetterData.style === 'pro' ? '#282828' : 'white',
+              color: coverLetterData.style === 'pro' ? 'white' : 'inherit',
+            }}
+            ref={coverLetterRef}
+          >
+            {/* Sender Info - Top Left */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+              <Box>
+                {coverLetterData.style === 'pro' && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="h5" sx={{ 
+                      textTransform: 'uppercase', 
+                      fontWeight: 'bold',
+                      color: coverLetterData.style === 'pro' ? '#2196f3' : 'inherit'
+                    }}>
+                      {coverLetterData.senderName}
+                    </Typography>
+                    <Typography sx={{ 
+                      color: coverLetterData.style === 'pro' ? '#2196f3' : 'inherit',
+                      textTransform: 'uppercase',
+                      fontWeight: 'bold',
+                    }}>
+                      {selectedJobRole || 'Professional'}
+                    </Typography>
+                  </Box>
+                )}
+                
+                {coverLetterData.style === 'normal' && (
+                  <>
+                    <Typography sx={{ fontWeight: 'bold' }}>
+                      {coverLetterData.senderName}
+                    </Typography>
+                    <Typography>
+                      {coverLetterData.senderAddress}
+                    </Typography>
+                    <Typography>
+                      {coverLetterData.senderCity}
+                    </Typography>
+                    <Typography>
+                      {coverLetterData.senderPhone}
+                    </Typography>
+                    <Typography>
+                      {coverLetterData.senderEmail}
+                    </Typography>
+                  </>
+                )}
+              </Box>
+              
+              {/* Date - Top Right */}
+              <Box>
+                <Typography>
+                  {coverLetterData.date}
+                </Typography>
+              </Box>
+            </Box>
+            
+            {/* Horizontal Line for Pro Style */}
+            {coverLetterData.style === 'pro' && (
+              <Box sx={{ 
+                width: '100%', 
+                height: '2px', 
+                bgcolor: '#2196f3', 
+                mb: 3 
+              }} />
+            )}
+            
+            {/* Recipient Info */}
+            <Box sx={{ mb: 3 }}>
+              <Typography>
+                {coverLetterData.recipientName}
+              </Typography>
+              <Typography>
+                {coverLetterData.recipientCompany}
+              </Typography>
+              <Typography>
+                {coverLetterData.senderCity}
+              </Typography>
+            </Box>
+            
+            {/* Greeting */}
+            <Box sx={{ mb: 2 }}>
+              <Typography>
+                Dear {coverLetterData.recipientName},
+              </Typography>
+            </Box>
+            
+            {/* Cover Letter Content */}
+            <Box sx={{ mb: 3 }}>
+              {coverLetterData.letterContent.split('\n\n').map((paragraph, index) => (
+                <Typography key={index} sx={{ mb: 2, textAlign: 'justify' }}>
+                  {paragraph}
+                </Typography>
+              ))}
+            </Box>
+            
+            {/* Closing */}
+            <Box>
+              <Typography sx={{ mb: 2 }}>
+                Sincerely,
+              </Typography>
+              <Typography sx={{ fontWeight: 'bold' }}>
+                {coverLetterData.senderName}
+              </Typography>
+              {coverLetterData.style === 'pro' ? (
+                <Typography>
+                  {coverLetterData.senderCity}
+                </Typography>
+              ) : null}
+              <Typography>
+                {coverLetterData.senderEmail}
+              </Typography>
+              {coverLetterData.style === 'pro' && (
+                <Typography>
+                  {coverLetterData.senderPhone}
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Box>
+      ) : (
+        <Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium' }}>
+              Choose Cover Letter Style
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              {/* Normal Style Option */}
+              <Paper 
+                elevation={coverLetterData.style === 'normal' ? 3 : 1}
+                onClick={() => handleCoverLetterStyleChange('normal')}
+                sx={{ 
+                  p: 2, 
+                  flex: 1, 
+                  cursor: 'pointer',
+                  border: coverLetterData.style === 'normal' ? '2px solid #2196f3' : '1px solid #e0e0e0',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: '#2196f3',
+                  }
+                }}
+              >
+                <Box sx={{ height: 140, mb: 2, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+                  <img 
+                    src="https://i.imgur.com/QUPlEAZ.png" 
+                    alt="Normal cover letter style"
+                    style={{ 
+                      width: '80%', 
+                      objectFit: 'cover', 
+                      borderRadius: 4,
+                      border: '1px solid #e0e0e0' 
+                    }}
+                  />
+                </Box>
+                <Typography variant="subtitle1" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  Normal Style
+                </Typography>
+                <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                  Traditional, clean layout with standard formatting
+                </Typography>
+              </Paper>
+              
+              {/* Pro Style Option */}
+              <Paper 
+                elevation={coverLetterData.style === 'pro' ? 3 : 1}
+                onClick={() => handleCoverLetterStyleChange('pro')}
+                sx={{ 
+                  p: 2, 
+                  flex: 1, 
+                  cursor: 'pointer',
+                  border: coverLetterData.style === 'pro' ? '2px solid #2196f3' : '1px solid #e0e0e0',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: '#2196f3',
+                  }
+                }}
+              >
+                <Box sx={{ height: 140, mb: 2, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+                  <img 
+                    src="https://i.imgur.com/mAjnUo3.png" 
+                    alt="Pro cover letter style"
+                    style={{ 
+                      width: '80%', 
+                      objectFit: 'cover', 
+                      borderRadius: 4,
+                      border: '1px solid #e0e0e0' 
+                    }}
+                  />
+                </Box>
+                <Typography variant="subtitle1" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  Pro Style
+                </Typography>
+                <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                  Modern design with accent colors and strategic formatting
+                </Typography>
+              </Paper>
+            </Box>
+          </Box>
+          
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Recipient Info */}
+            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
+              Recipient Information
+            </Typography>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Company Name"
+                value={coverLetterData.recipientCompany}
+                onChange={(e) => handleCoverLetterDataChange('recipientCompany', e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Recipient Name"
+                value={coverLetterData.recipientName}
+                onChange={(e) => handleCoverLetterDataChange('recipientName', e.target.value)}
+                placeholder="Hiring Manager"
+              />
+            </Box>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Job Title"
+                value={coverLetterData.jobTitle}
+                onChange={(e) => handleCoverLetterDataChange('jobTitle', e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Job ID (Optional)"
+                value={coverLetterData.jobId || ''}
+                onChange={(e) => handleCoverLetterDataChange('jobId', e.target.value)}
+              />
+            </Box>
+            
+            {/* Sender Info */}
+            <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'medium' }}>
+              Your Information
+            </Typography>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Your Name"
+                value={coverLetterData.senderName}
+                onChange={(e) => handleCoverLetterDataChange('senderName', e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Your Address"
+                value={coverLetterData.senderAddress}
+                onChange={(e) => handleCoverLetterDataChange('senderAddress', e.target.value)}
+              />
+            </Box>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                label="City, State"
+                value={coverLetterData.senderCity}
+                onChange={(e) => handleCoverLetterDataChange('senderCity', e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Email"
+                value={coverLetterData.senderEmail}
+                onChange={(e) => handleCoverLetterDataChange('senderEmail', e.target.value)}
+                required
+              />
+            </Box>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Phone"
+                value={coverLetterData.senderPhone}
+                onChange={(e) => handleCoverLetterDataChange('senderPhone', e.target.value)}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Date"
+                value={coverLetterData.date}
+                onChange={(e) => handleCoverLetterDataChange('date', e.target.value)}
+              />
+            </Box>
+          </Box>
+        </Box>
+      )}
+    </DialogContent>
+    
+    <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+      {!coverLetterPreview ? (
+        <>
+          <Button 
+            onClick={handleCloseCoverLetterDialog}
+            sx={{ color: 'text.secondary' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={generateCoverLetter}
+            sx={{ 
+              bgcolor: '#1976d2',
+              '&:hover': { bgcolor: '#1565c0' } 
+            }}
+            disabled={!coverLetterData.recipientCompany || !coverLetterData.jobTitle || !coverLetterData.senderName || !coverLetterData.senderEmail || !coverLetterData.senderPhone}
+          >
+            Generate Cover Letter
+          </Button>
+        </>
+      ) : null}
+    </DialogActions>
+  </Dialog>
 </Box>
   );
 }
