@@ -85,79 +85,22 @@ const skillSuggestions: { [key: string]: string[] } = {
 
 const initialResumeData: ResumeData = {
   personalInfo: {
-    name: "Alex Johnson",
-    email: "alex.johnson@example.com",
-    mobile: "(555) 123-4567",
-    location: "New York, NY",
-    linkedin: "linkedin.com/in/alexjohnson",
+    name: '',
+    linkedin: '',
+    location: '',
+    email: '',
+    mobile: '',
   },
-  summary: "Dedicated and innovative Full Stack Developer with over 5 years of experience building scalable web applications and services. Proficient in JavaScript, TypeScript, React, Node.js, and cloud technologies with a strong focus on creating responsive, user-centered designs. Passionate about clean code architecture and implementing best practices in software development. Experienced in leading small development teams and mentoring junior developers. Seeking to leverage my technical expertise and leadership skills in a challenging role that focuses on creating impactful digital solutions for enterprise clients.",
+  summary: '',
+  education: [],
   skills: {
-    "Technical Skills": ["JavaScript", "TypeScript", "React", "Node.js", "Express", "MongoDB", "PostgreSQL", "AWS", "Docker", "Kubernetes", "REST APIs", "GraphQL", "Redux", "Material UI", "Git"],
-    "Soft Skills": ["Leadership", "Communication", "Problem Solving", "Team Collaboration", "Project Management", "Agile Methodologies", "Time Management", "Critical Thinking"],
-    "Tools": ["VS Code", "GitHub", "GitLab", "Jira", "Confluence", "Postman", "Figma", "Adobe XD", "Slack", "Microsoft Office"]
+    'Technical Skills': [],
+    'Soft Skills': [],
+    'Tools & Technologies': [],
   },
-  education: [
-    {
-      school: "Stanford University",
-      degree: "M.S. in Computer Science",
-      location: "Stanford, CA",
-      date: "2015-2017",
-      gpa: "3.85"
-    },
-    {
-      school: "University of California, Berkeley",
-      degree: "B.S. in Computer Science",
-      location: "Berkeley, CA",
-      date: "2011-2015",
-      gpa: "3.75"
-    }
-  ],
-  projects: [
-    {
-      title: "Enterprise Resource Planning System",
-      description: "Designed and developed a comprehensive ERP system that integrated inventory management, human resources, financial reporting, and customer relationship management modules. The solution enhanced business efficiency by 45% and reduced manual data entry errors by 75%. Implemented real-time analytics dashboard for executive decision making and automated numerous business processes to improve productivity.",
-      tech: "React, Node.js, Express, MongoDB, Redux, AWS, Docker",
-      date: "Jan 2022 - Dec 2022",
-      inProgress: false
-    },
-    {
-      title: "Healthcare Patient Portal",
-      description: "Led the development of a secure patient portal for a healthcare provider serving over 50,000 patients. The system features appointment scheduling, medical record access, secure messaging with healthcare providers, prescription refill requests, and billing management. Implemented HIPAA-compliant security measures and integrated with existing healthcare systems through custom APIs.",
-      tech: "TypeScript, React, Node.js, PostgreSQL, Azure, FHIR APIs",
-      date: "Mar 2021 - Nov 2021",
-      inProgress: false
-    },
-    {
-      title: "AI-Powered Content Management System",
-      description: "Currently building an innovative CMS that leverages artificial intelligence to automate content creation, optimization, and distribution across multiple channels. The system uses natural language processing to generate SEO-friendly content, recommend improvements, and analyze performance metrics. Implementing machine learning algorithms to personalize content based on user behavior and preferences.",
-      tech: "Python, React, TensorFlow, AWS, Elasticsearch, GraphQL",
-      date: "Jun 2023 - Present",
-      inProgress: true
-    }
-  ],
-  certifications: [
-    {
-      name: "AWS Certified Solutions Architect",
-      details: "Comprehensive certification covering design and deployment of secure and robust applications on AWS. Gained expertise in selecting appropriate AWS services, estimating AWS costs, and implementing cost control strategies. Demonstrated ability to architect scalable, highly available, and fault-tolerant systems on AWS.",
-      company: "Amazon Web Services",
-      date: "Mar 2022"
-    },
-    {
-      name: "Google Professional Cloud Developer",
-      details: "Advanced certification validating ability to build, deploy, and monitor applications on Google Cloud Platform. Developed skills in using GCP to design and build scalable, highly available, and reliable cloud-native applications. Mastered Kubernetes, Cloud Run, App Engine, and various database services.",
-      company: "Google Cloud",
-      date: "Sep 2021"
-    }
-  ],
-  publications: [
-    {
-      title: "Microservices Architecture: Best Practices for Scale",
-      details: "Published in-depth technical article on implementing microservices architecture for enterprise applications. Covered service boundaries, intercommunication patterns, data consistency challenges, deployment strategies, and monitoring. Provided real-world case studies of successful implementations and lessons learned from production environments.",
-      technologies: "Microservices, Docker, Kubernetes, API Gateway, Event Sourcing",
-      date: "May 2023"
-    }
-  ],
+  projects: [],
+  certifications: [],
+  publications: [],
 };
 
 function App() {
@@ -181,7 +124,7 @@ function App() {
   const [downloadFormat, setDownloadFormat] = useState<PageCountType | null>(null);
   const [isPreparingDownload, setIsPreparingDownload] = useState<boolean>(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const handlePrint = useReactToPrint({
@@ -448,6 +391,13 @@ function App() {
     // Let the Resume component handle font adjustments
     setAutoOptimized(true);
     
+    // Show feedback to user about optimization in progress
+    setSnackbarMessage(selectedPageCount === 1 
+      ? 'Optimizing content for single page...' 
+      : `Organizing content across ${selectedPageCount} pages...`);
+    setSnackbarSeverity('info');
+    setSnackbarOpen(true);
+    
     // Short timeout to ensure state is updated before printing
     setTimeout(() => {
       handlePrint();
@@ -458,8 +408,37 @@ function App() {
         setIsPreparingDownload(false);
         setShowDownloadDialog(false);
         setDownloadFormat(null);
+        
+        // Show success message
+        setSnackbarMessage('Resume downloaded successfully!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
       }, 1000);
-    }, 500);
+    }, 800);
+  };
+
+  // Function to update page count with content optimization
+  const handlePageCountChange = (newPageCount: PageCountType) => {
+    // If increasing page count, just update it
+    if (newPageCount >= pageCount) {
+      setPageCount(newPageCount);
+      setAutoOptimized(false);
+      return;
+    }
+    
+    // If decreasing page count, check if content needs optimization
+    if (contentOverflow) {
+      // Show warning that content will be compressed
+      setSnackbarMessage(newPageCount === 1 
+        ? 'Content will be compressed to fit a single page' 
+        : `Content will be compressed to fit ${newPageCount} pages`);
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+    }
+    
+    // Update the page count and set auto-optimized flag
+    setPageCount(newPageCount);
+    setAutoOptimized(true);
   };
 
   // Recalculate ATS score on any data change
@@ -479,6 +458,100 @@ function App() {
     setAtsScore(null);
     setIsFinished(false);
     setAutoOptimized(false);
+  };
+
+  // Add function to fill with dummy content
+  const fillDummyContent = () => {
+    const dummyData: ResumeData = {
+      personalInfo: {
+        name: 'John Smith',
+        linkedin: 'linkedin.com/in/johnsmith',
+        location: 'New York, NY',
+        email: 'john.smith@example.com',
+        mobile: '(555) 123-4567',
+      },
+      summary: 'Results-driven Software Engineer with 5+ years of experience developing robust web applications using React, Node.js, and TypeScript. Implemented microservices architecture that improved system reliability by 35% and reduced API response times by 28%. Passionate about clean code, performance optimization, and creating exceptional user experiences. Seeking to leverage my technical expertise and problem-solving skills to drive innovation in a collaborative team environment.',
+      education: [
+        {
+          school: 'Massachusetts Institute of Technology',
+          degree: 'Master of Science in Computer Science',
+          location: 'Cambridge, MA',
+          date: '2017 - 2019',
+          gpa: '3.85'
+        },
+        {
+          school: 'University of California, Berkeley',
+          degree: 'Bachelor of Science in Computer Engineering',
+          location: 'Berkeley, CA',
+          date: '2013 - 2017',
+          gpa: '3.92'
+        }
+      ],
+      skills: {
+        'Technical Skills': ['JavaScript', 'TypeScript', 'React', 'Node.js', 'Express', 'GraphQL', 'REST APIs', 'MongoDB', 'PostgreSQL'],
+        'Soft Skills': ['Communication', 'Problem Solving', 'Team Leadership', 'Agile Methodologies', 'Project Management'],
+        'Tools & Technologies': ['Git', 'Docker', 'Kubernetes', 'AWS', 'CI/CD', 'Jest', 'Webpack'],
+      },
+      projects: [
+        {
+          title: 'E-commerce Platform Redesign',
+          description: 'Led a team of 5 developers to redesign and modernize a legacy e-commerce platform serving 50,000+ daily users. Implemented a microservices architecture using Node.js and React, resulting in a 40% improvement in page load times and a 25% increase in conversion rates. Integrated authentication system with OAuth 2.0 and implemented robust security measures to protect user data and prevent fraud.',
+          tech: 'React, Redux, Node.js, Express, MongoDB, AWS, Docker',
+          date: '2021 - 2022',
+          inProgress: false
+        },
+        {
+          title: 'Real-time Analytics Dashboard',
+          description: 'Designed and developed a real-time analytics dashboard that processes over 1 million events per day. Implemented efficient data aggregation algorithms and visualization components that reduced report generation time by 65%. Created a flexible filtering system allowing users to customize data views according to their specific business needs.',
+          tech: 'React, D3.js, GraphQL, PostgreSQL, Redis, WebSockets',
+          date: '2020 - 2021',
+          inProgress: false
+        },
+        {
+          title: 'AI-Powered Content Management System',
+          description: 'Currently developing an AI-powered content management system that uses natural language processing to automatically categorize, tag, and optimize content. Implementing machine learning algorithms to provide content recommendations and performance insights. Building a intuitive user interface with comprehensive analytics and reporting features.',
+          tech: 'React, Python, TensorFlow, Flask, PostgreSQL, Docker',
+          date: '2022 - Present',
+          inProgress: true
+        }
+      ],
+      certifications: [
+        {
+          name: 'AWS Certified Solutions Architect',
+          details: 'Comprehensive certification demonstrating expertise in designing and deploying scalable, fault-tolerant systems on AWS.',
+          date: 'September 2021',
+          company: 'AWS'
+        },
+        {
+          name: 'Google Professional Cloud Developer',
+          details: 'Advanced certification validating skills in building and deploying applications using Google Cloud technologies and best practices.',
+          date: 'March 2020',
+          company: 'Google'
+        }
+      ],
+      publications: [
+        {
+          title: 'Optimizing React Performance in Large-Scale Applications',
+          details: 'Detailed technical article covering advanced techniques for optimizing React applications, including virtualization, memoization, code splitting, and efficient state management strategies.',
+          technologies: 'React, JavaScript, Webpack',
+          date: 'July 2021'
+        },
+        {
+          title: 'Microservices Architecture: Practical Implementation Patterns',
+          details: 'Research paper examining various implementation patterns for microservices architecture, including data consistency strategies, service discovery methods, and fault tolerance approaches.',
+          technologies: 'Node.js, Docker, Kubernetes, Message Queues',
+          date: 'November 2020'
+        }
+      ],
+    };
+
+    setResumeData(dummyData);
+    setSelectedJobRole('Software Engineer');
+    setSelectedTemplate('google');
+    // Calculate and set ATS score based on the dummy data
+    const newScore = 85;
+    setAtsScore(newScore);
+    setIsFinished(true);
   };
 
   const handleCloseSnackbar = () => {
@@ -641,21 +714,35 @@ function App() {
                   },
                 }}
               >
-                    {isFinished ? `Your ATS Score: ${atsScore}%` : 'Finish Resume'}
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={resetResume}
-                    sx={{
-                      borderColor: '#ff9800',
-                      color: '#ff9800',
-                      '&:hover': { 
-                        borderColor: '#ed6c02',
-                        backgroundColor: 'rgba(255, 152, 0, 0.04)'
-                      },
-                    }}
-                  >
-                    Reset Resume
+                {isFinished ? `Your ATS Score: ${atsScore}%` : 'Finish Resume'}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={resetResume}
+                sx={{
+                  borderColor: '#ff9800',
+                  color: '#ff9800',
+                  '&:hover': { 
+                    borderColor: '#ed6c02',
+                    backgroundColor: 'rgba(255, 152, 0, 0.04)'
+                  },
+                }}
+              >
+                Reset Resume
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={fillDummyContent}
+                sx={{
+                  borderColor: '#2196f3',
+                  color: '#2196f3',
+                  '&:hover': { 
+                    borderColor: '#1976d2',
+                    backgroundColor: 'rgba(33, 150, 243, 0.04)'
+                  },
+                }}
+              >
+                Fill Dummy Content
               </Button>
             </Box>
           </Paper>
@@ -846,15 +933,75 @@ function App() {
                       Content exceeds {pageCount} {pageCount === 1 ? 'page' : 'pages'} - {pageCount < 5 ? `Switch to ${pageCount + 1} pages or ` : ''}reduce content
                     </Box>
                   )}
-          <Box ref={resumeRef}>
-            <Resume
-              data={resumeData}
-              fontFamily={selectedFont}
-              template={selectedTemplate}
+
+                  {/* Page Count Selector */}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    mb: 2,
+                    gap: 1.5
+                  }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      Pages:
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      {[1, 2, 3, 4, 5].map((count) => (
+                        <Box 
+                          key={count}
+                          onClick={() => handlePageCountChange(count as PageCountType)}
+                          sx={{
+                            width: 28,
+                            height: 28,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: `1px solid ${count === pageCount ? '#1976d2' : 'rgba(0,0,0,0.12)'}`,
+                            borderRadius: '4px',
+                            backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.1)' : 'white',
+                            color: count === pageCount ? '#1976d2' : 'text.secondary',
+                            fontWeight: count === pageCount ? 'bold' : 'normal',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              borderColor: '#1976d2',
+                              backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.15)' : 'rgba(25, 118, 210, 0.05)',
+                            }
+                          }}
+                        >
+                          {count}
+                        </Box>
+                      ))}
+                    </Box>
+                    {contentOverflow && pageCount < 5 && (
+                      <Button 
+                        size="small"
+                        variant="text"
+                        onClick={() => handlePageCountChange(Math.min(5, pageCount + 1) as PageCountType)}
+                        sx={{ 
+                          minWidth: 'auto', 
+                          p: 0.5, 
+                          fontSize: '0.75rem',
+                          color: '#1976d2',
+                          '&:hover': {
+                            backgroundColor: 'rgba(25, 118, 210, 0.05)',
+                          }
+                        }}
+                      >
+                        Add page
+                      </Button>
+                    )}
+                  </Box>
+                  
+                  <Box ref={resumeRef}>
+                    <Resume
+                      data={resumeData}
+                      fontFamily={selectedFont}
+                      template={selectedTemplate}
                       pageCount={pageCount}
                       onPageOverflow={handlePageOverflow}
-            />
-          </Box>
+                    />
+                  </Box>
                 </Box>
               </Paper>
         </Box>
@@ -1553,83 +1700,109 @@ function App() {
                 </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                       {contentOverflow 
-                        ? "Content will be condensed to fit one page" 
+                        ? "Content will be optimized to fit one page" 
                         : "All content fits on one page"}
                 </Typography>
                   </Box>
                 </Paper>
                 
-                {/* Multi-Page Option */}
-                <Paper 
-                  elevation={0}
-                  onClick={() => handleOptimizedPrint(contentOverflow 
-                    ? Math.min(5, pageCount + 1 > 5 ? 5 : (pageCount + 1)) as PageCountType 
-                    : pageCount)}
-                  sx={{ 
-                    p: 2, 
-                    border: '1px solid rgba(0,0,0,0.12)', 
-                    borderRadius: 2,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      borderColor: '#1976d2',
-                      boxShadow: '0 0 0 1px #1976d2',
-                      bgcolor: 'rgba(25, 118, 210, 0.04)'
-                    },
+                {/* Multi-Page Option with Dynamic Page Count Selector */}
+                <Box sx={{
+                  border: '1px solid rgba(0,0,0,0.12)', 
+                  borderRadius: 2,
+                  p: 2,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: '#1976d2',
+                    boxShadow: '0 0 0 1px #1976d2',
+                    bgcolor: 'rgba(25, 118, 210, 0.04)'
+                  },
+                }}>
+                  <Box sx={{ 
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     gap: 2
-                  }}
-                >
-                  <Box sx={{ 
-                    display: 'flex',
-                    position: 'relative',
-                    width: 100,
-                    height: 140
                   }}>
-                    {[...Array(3)].map((_, i) => (
-                      <Box 
-                        key={i} 
-                        sx={{ 
-                          width: 80, 
-                          height: 120, 
-                          bgcolor: 'white',
-                          border: '1px solid rgba(0,0,0,0.12)',
-                          borderRadius: 1,
-                          position: 'absolute',
-                          top: i * 10,
-                          left: i * 10,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          p: 0.5,
-                          zIndex: 3 - i
-                        }}
-                      >
-                        <Box sx={{ height: '15%', bgcolor: '#1976d2', mb: 0.5, borderRadius: '2px 2px 0 0' }} />
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, flex: 1 }}>
-                          {[...Array(5)].map((_, j) => (
-                            <Box key={j} sx={{ height: '2px', bgcolor: '#e0e0e0', width: '90%', mx: 'auto' }} />
-                          ))}
+                    <Box sx={{ 
+                      display: 'flex',
+                      position: 'relative',
+                      width: 100,
+                      height: 110
+                    }}>
+                      {[...Array(3)].map((_, i) => (
+                        <Box 
+                          key={i} 
+                          sx={{ 
+                            width: 80, 
+                            height: 100, 
+                            bgcolor: 'white',
+                            border: '1px solid rgba(0,0,0,0.12)',
+                            borderRadius: 1,
+                            position: 'absolute',
+                            top: i * 10,
+                            left: i * 10,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            p: 0.5,
+                            zIndex: 3 - i
+                          }}
+                        >
+                          <Box sx={{ height: '15%', bgcolor: '#1976d2', mb: 0.5, borderRadius: '2px 2px 0 0' }} />
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, flex: 1 }}>
+                            {[...Array(4)].map((_, j) => (
+                              <Box key={j} sx={{ height: '2px', bgcolor: '#e0e0e0', width: '90%', mx: 'auto' }} />
+                            ))}
+                          </Box>
                         </Box>
+                      ))}
+                    </Box>
+                    
+                    <Box sx={{ textAlign: 'center', width: '100%' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2', mb: 1 }}>
+                        Multiple Pages
+                      </Typography>
+                      
+                      {/* Page count selector */}
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 1 }}>
+                        {[2, 3, 4, 5].map((count) => (
+                          <Box 
+                            key={count}
+                            onClick={() => handleOptimizedPrint(count as PageCountType)}
+                            sx={{
+                              width: 28,
+                              height: 28,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: `1px solid ${count === (contentOverflow ? Math.min(5, pageCount + 1) : pageCount) ? '#1976d2' : 'rgba(0,0,0,0.12)'}`,
+                              borderRadius: '50%',
+                              backgroundColor: count === (contentOverflow ? Math.min(5, pageCount + 1) : pageCount) ? 'rgba(25, 118, 210, 0.1)' : 'white',
+                              color: count === (contentOverflow ? Math.min(5, pageCount + 1) : pageCount) ? '#1976d2' : 'text.secondary',
+                              fontWeight: count === (contentOverflow ? Math.min(5, pageCount + 1) : pageCount) ? 'bold' : 'normal',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                borderColor: '#1976d2',
+                                backgroundColor: count === (contentOverflow ? Math.min(5, pageCount + 1) : pageCount) ? 'rgba(25, 118, 210, 0.15)' : 'rgba(25, 118, 210, 0.05)',
+                              }
+                            }}
+                          >
+                            {count}
+                          </Box>
+                        ))}
                       </Box>
-                    ))}
+                      
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {contentOverflow 
+                          ? `Content will be distributed across pages` 
+                          : `Spreads content for better readability`}
+                      </Typography>
+                    </Box>
                   </Box>
-                  
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                      Multiple Pages
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                      {contentOverflow 
-                        ? `Will use ${Math.min(5, pageCount + 1)} pages to fit all content` 
-                        : `Will use ${pageCount} page${pageCount > 1 ? 's' : ''}`}
-                </Typography>
+                </Box>
               </Box>
-                </Paper>
-          </Box>
               
-              {contentOverflow && pageCount === 1 && (
+              {contentOverflow && (
                 <Box sx={{ 
                   mt: 3, 
                   p: 2, 
@@ -1638,7 +1811,9 @@ function App() {
                   borderRadius: '0 4px 4px 0'
                 }}>
                   <Typography variant="body2" color="warning.dark">
-                    <strong>Note:</strong> Your content exceeds one page. Choosing single-page will automatically adjust font size and trim content to fit.
+                    <strong>Note:</strong> {pageCount === 1 
+                      ? 'Your content exceeds one page. Choosing single-page will automatically adjust font size and spacing to fit.'
+                      : `Your content exceeds ${pageCount} pages. Automatic optimization will adjust font size and spacing to fit your content.`}
                   </Typography>
                 </Box>
               )}
@@ -1671,6 +1846,7 @@ function App() {
         )}
       </Dialog>
 
+      {/* Error Snackbar */}
       <Snackbar
         open={!!error}
         autoHideDuration={6000}
@@ -1679,6 +1855,18 @@ function App() {
       >
         <Alert onClose={() => setError(null)} severity="error">
           {error}
+        </Alert>
+      </Snackbar>
+
+      {/* Feedback Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity}>
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </Container>

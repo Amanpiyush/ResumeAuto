@@ -308,23 +308,50 @@ export const Resume: React.FC<ResumeProps> = ({
   
   // Reset font size when page count changes - this is the primary adjustment
   useEffect(() => {
-    // Set font size based on page count only
+    // Dynamic font size adjustment based on page count and content length
+    const contentLength = 
+      (data.summary?.length || 0) + 
+      (data.education?.length || 0) * 100 + 
+      Object.values(data.skills).reduce((acc, skills) => acc + skills.length * 20, 0) + 
+      (data.projects?.length || 0) * 200 + 
+      (data.certifications?.length || 0) * 100 + 
+      (data.publications?.length || 0) * 150;
+    
+    // Base size adjustments by page count
+    let baseFontSize: number;
+    let baseLineHeight: number;
+    let baseMarginScale: number;
+    
     if (pageCount === 1) {
-      setFontSize(10); // Smaller font for single page
-      setLineHeight(1.3); // Tighter line height for single page
-      setMarginScale(0.7); // Reduced spacing for single page
+      baseFontSize = 10;
+      baseLineHeight = 1.3;
+      baseMarginScale = 0.7;
     } else if (pageCount === 2) {
-      setFontSize(10.5); // Medium font for two pages
-      setLineHeight(1.5);
-      setMarginScale(1);
+      baseFontSize = 10.5;
+      baseLineHeight = 1.4;
+      baseMarginScale = 0.85;
+    } else if (pageCount === 3) {
+      baseFontSize = 11;
+      baseLineHeight = 1.5;
+      baseMarginScale = 1;
     } else {
-      setFontSize(11); // Larger font for 3+ pages
-      setLineHeight(1.5);
-      setMarginScale(1);
+      baseFontSize = 11.5;
+      baseLineHeight = 1.5;
+      baseMarginScale = 1.2;
     }
-  }, [pageCount]);
+    
+    // Content density adjustment
+    // If there's a lot of content, make the font slightly smaller to fit more
+    const contentDensityFactor = contentLength > 5000 ? 0.9 : 
+                                contentLength > 3000 ? 0.95 : 
+                                contentLength > 1500 ? 0.97 : 1;
+    
+    setFontSize(baseFontSize * contentDensityFactor);
+    setLineHeight(baseLineHeight * (contentDensityFactor < 1 ? 0.95 : 1));
+    setMarginScale(baseMarginScale * (contentDensityFactor < 1 ? 0.9 : 1));
+  }, [pageCount, data]);
   
-  // Overflow detection without aggressive adjustments
+  // Overflow detection with improved responsiveness
   useEffect(() => {
     const checkOverflow = () => {
       if (!resumeRef.current) return false;
@@ -368,34 +395,115 @@ export const Resume: React.FC<ResumeProps> = ({
       // Single page resume with minimal spacing
       return template === 'two-column' ? renderTwoColumnLayout() : renderStandardLayout();
     } else {
-      // Multi-page distribution based on content length
-      // Determine which content goes on which page
-      const sectionsToRender = [
-        { id: 'header', component: renderHeader, priority: 1 },
-        { id: 'summary', component: renderSummary, priority: 2 },
-        { id: 'education', component: renderEducation, priority: 3 },
-        { id: 'skills', component: renderSkills, priority: 4 },
-        { id: 'projects', component: renderProjects, priority: 5 },
-        { id: 'certifications', component: renderCertifications, priority: 6 },
-        { id: 'publications', component: renderPublications, priority: 7 },
-        { id: 'extraSections', component: renderExtraSections, priority: 8 }
-      ];
+      // Improved multi-page distribution based on content length
+      // Define sections and their approximate size/importance
+      const sectionsToRender = [];
       
-      // Get section counts to determine content distribution
-      const totalSections = sectionsToRender.length;
-      const sectionsPerPage = Math.ceil(totalSections / pageCount);
-      
-      // Distribute sections across pages
-      const pagesContent = Array.from({ length: pageCount }, (_, pageIndex) => {
-        const startIndex = pageIndex * sectionsPerPage;
-        const endIndex = Math.min(startIndex + sectionsPerPage, totalSections);
-        
-        return sectionsToRender
-          .slice(startIndex, endIndex)
-          .sort((a, b) => a.priority - b.priority);
+      // Always add header to first page
+      sectionsToRender.push({ 
+        id: 'header', 
+        component: renderHeader, 
+        priority: 1,
+        weight: 5 // Header is small but important
       });
       
-  return (
+      // Add summary if it exists
+      if (data.summary?.trim()) {
+        sectionsToRender.push({ 
+          id: 'summary', 
+          component: renderSummary, 
+          priority: 2,
+          weight: data.summary.length / 100 // Weight based on length
+        });
+      }
+      
+      // Add education if it exists
+      if (data.education?.length > 0) {
+        sectionsToRender.push({ 
+          id: 'education', 
+          component: renderEducation, 
+          priority: 3,
+          weight: data.education.length * 10 // Weight based on number of entries
+        });
+      }
+      
+      // Add skills if they exist
+      if (Object.values(data.skills).some(skills => skills.length > 0)) {
+        sectionsToRender.push({ 
+          id: 'skills', 
+          component: renderSkills, 
+          priority: 4,
+          weight: Object.values(data.skills).reduce((acc, skills) => acc + skills.length, 0) * 2
+        });
+      }
+      
+      // Add projects if they exist
+      if (data.projects?.length > 0) {
+        sectionsToRender.push({ 
+          id: 'projects', 
+          component: renderProjects, 
+          priority: 5,
+          weight: data.projects.reduce((acc, project) => 
+            acc + (project.description?.length || 0) / 50, 0) + data.projects.length * 10
+        });
+      }
+      
+      // Add certifications if they exist
+      if (data.certifications?.length > 0) {
+        sectionsToRender.push({ 
+          id: 'certifications', 
+          component: renderCertifications, 
+          priority: 6,
+          weight: data.certifications.length * 8
+        });
+      }
+      
+      // Add publications if they exist
+      if (data.publications?.length > 0) {
+        sectionsToRender.push({ 
+          id: 'publications', 
+          component: renderPublications, 
+          priority: 7,
+          weight: data.publications.length * 10
+        });
+      }
+      
+      // Add extra sections if they exist
+      if (data.extraSections && data.extraSections.length > 0) {
+        sectionsToRender.push({ 
+          id: 'extraSections', 
+          component: renderExtraSections, 
+          priority: 8,
+          weight: data.extraSections.reduce((acc, section) => 
+            acc + section.items.length * 5, 0)
+        });
+      }
+      
+      // Calculate total weight
+      const totalWeight = sectionsToRender.reduce((acc, section) => acc + section.weight, 0);
+      
+      // Distribute sections across pages more intelligently
+      const pagesContent: Array<typeof sectionsToRender> = Array(pageCount).fill(null).map(() => []);
+      let currentPage = 0;
+      let currentPageWeight = 0;
+      const weightPerPage = totalWeight / pageCount;
+      
+      // Sort by priority to maintain logical order
+      sectionsToRender.sort((a, b) => a.priority - b.priority);
+      
+      // Distribute based on weight
+      sectionsToRender.forEach(section => {
+        // If adding this section would overflow the page weight by too much, move to next page
+        if (currentPageWeight + section.weight > weightPerPage * 1.3 && currentPage < pageCount - 1) {
+          currentPage++;
+          currentPageWeight = 0;
+        }
+        
+        pagesContent[currentPage].push(section);
+        currentPageWeight += section.weight;
+      });
+      
+      return (
         <Box>
           {pagesContent.map((pageSections, pageIndex) => (
             <React.Fragment key={`page-${pageIndex + 1}`}>
@@ -437,7 +545,13 @@ export const Resume: React.FC<ResumeProps> = ({
                 )}
                 
                 {/* Render sections for this page */}
-                {pageSections.map(section => section.component())}
+                {pageSections.length > 0 ? (
+                  pageSections.map(section => section.component())
+                ) : (
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', textAlign: 'center', my: 4 }}>
+                    No content for this page
+                  </Typography>
+                )}
                 
                 {/* Spacer to push content to top */}
                 <Box sx={{ flex: 1 }} />
@@ -468,7 +582,7 @@ export const Resume: React.FC<ResumeProps> = ({
                   }}
                 >
                   <Box 
-      sx={{ 
+                    sx={{ 
                       position: 'absolute', 
                       top: '-10px', 
                       left: '50%', 
@@ -572,7 +686,7 @@ export const Resume: React.FC<ResumeProps> = ({
                         }}>
                           {category}
         </Typography>
-        <Typography variant="body2" sx={{ fontFamily: fontFamily, textAlign: 'justify' }}>
+        <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
                           {items.join(', ')}
                         </Typography>
                       </Box>
@@ -652,7 +766,7 @@ export const Resume: React.FC<ResumeProps> = ({
         </Typography>
                       )}
                     </Box>
-          <Typography variant="body2" sx={{ fontFamily: fontFamily, textAlign: 'justify' }}>
+          <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
                       {cert.details}
                       {cert.company && <> | {cert.company}</>}
                     </Typography>
@@ -678,14 +792,7 @@ export const Resume: React.FC<ResumeProps> = ({
                 }}>
                   PROFESSIONAL SUMMARY
                 </Typography>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    fontFamily: fontFamily,
-                    lineHeight: lineHeight,
-                    textAlign: 'justify'
-                  }}
-                >
+                <Typography variant="body2" sx={{ fontFamily: fontFamily, mt: 1 }}>
                   {data.summary}
                 </Typography>
               </Box>
@@ -750,13 +857,12 @@ export const Resume: React.FC<ResumeProps> = ({
                       variant="body2" 
                       sx={{ 
                         fontFamily: fontFamily, 
-                        textAlign: 'justify',
-                        mb: marginScale * 0.75,
+                        mb: 0.5
                       }}
                     >
-                      <strong>Description:</strong> {project.description}
+                      {project.description}
                     </Typography>
-                    <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
+                    <Typography variant="body2" sx={{ fontFamily: fontFamily, fontStyle: 'italic' }}>
                       <strong>Tech:</strong> {project.tech}
                     </Typography>
                   </Box>
@@ -794,11 +900,11 @@ export const Resume: React.FC<ResumeProps> = ({
                         </Typography>
                       )}
                     </Box>
-                    <Typography variant="body2" sx={{ fontFamily: fontFamily, textAlign: 'justify' }}>
-                      <strong>Details:</strong> {pub.details}
+                    <Typography variant="body2" sx={{ fontFamily: fontFamily, mb: 0.5 }}>
+                      {pub.details}
                     </Typography>
-                    <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
-                      <strong>Technologies Used:</strong> {pub.technologies}
+                    <Typography variant="body2" sx={{ fontFamily: fontFamily, fontStyle: 'italic' }}>
+                      <strong>Technologies:</strong> {pub.technologies}
                     </Typography>
                   </Box>
                 ))}
@@ -838,14 +944,7 @@ export const Resume: React.FC<ResumeProps> = ({
           </Typography>
                       )}
                     </Box>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              fontFamily: fontFamily, 
-              textAlign: 'justify',
-              mb: marginScale * 0.75,
-            }}
-          >
+          <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
                       {item.description}
           </Typography>
                   </Box>
@@ -1052,8 +1151,7 @@ export const Resume: React.FC<ResumeProps> = ({
               variant="body2" 
               sx={{ 
                 fontFamily: fontFamily, 
-                textAlign: 'justify',
-                mb: marginScale * 0.75,
+                mb: pageCount === 1 ? 0.2 : marginScale * 0.3
               }}
             >
               <strong>Description:</strong> {project.description}
@@ -1118,7 +1216,7 @@ export const Resume: React.FC<ResumeProps> = ({
                 </Typography>
               )}
             </Box>
-            <Typography variant="body2" sx={{ fontFamily: fontFamily, textAlign: 'justify' }}>
+            <Typography variant="body2" sx={{ fontFamily: fontFamily, mb: pageCount === 1 ? 0.2 : marginScale * 0.3 }}>
               <strong>Details:</strong> {pub.details}
             </Typography>
             <Typography variant="body2" sx={{ fontFamily: fontFamily }}>
