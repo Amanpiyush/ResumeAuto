@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Container, Button, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Snackbar, Alert, Paper, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText, Chip, GlobalStyles, IconButton, Grid } from '@mui/material';
+import { Box, Container, Button, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Snackbar, Alert, Paper, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText, Chip, GlobalStyles, IconButton, Grid, Tab, Tabs } from '@mui/material';
 import { useReactToPrint } from 'react-to-print';
 import Resume from './components/Resume';
 import ResumeForm from './components/ResumeForm';
@@ -7,6 +7,22 @@ import { ResumeData } from './components/Resume';
 
 // Define page count type to be used throughout the app
 type PageCountType = 1 | 2 | 3 | 4 | 5;
+
+// Define cover letter data type
+interface CoverLetterData {
+  recipientCompany: string;
+  recipientName: string;
+  jobTitle: string;
+  jobId?: string;
+  senderName: string;
+  senderAddress: string;
+  senderCity: string;
+  senderEmail: string;
+  senderPhone: string;
+  letterContent: string;
+  style: 'pro' | 'normal';
+  date: string;
+}
 
 const fonts = [
   'Times New Roman',
@@ -126,6 +142,24 @@ function App() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [showCoverLetterDialog, setShowCoverLetterDialog] = useState<boolean>(false);
+  const [coverLetterData, setCoverLetterData] = useState<CoverLetterData>({
+    recipientCompany: '',
+    recipientName: 'Hiring Manager',
+    jobTitle: '',
+    jobId: '',
+    senderName: '',
+    senderAddress: '',
+    senderCity: '',
+    senderEmail: '',
+    senderPhone: '',
+    letterContent: '',
+    style: 'normal',
+    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  });
+  const [generatedCoverLetter, setGeneratedCoverLetter] = useState<string>('');
+  const [coverLetterPreview, setShowCoverLetterPreview] = useState<boolean>(false);
+  const coverLetterRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     contentRef: resumeRef,
@@ -556,6 +590,75 @@ function App() {
 
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
+  };
+
+  // Handle cover letter dialog open
+  const handleOpenCoverLetterDialog = () => {
+    // Pre-fill with data from resume if available
+    setCoverLetterData({
+      ...coverLetterData,
+      senderName: resumeData.personalInfo.name || '',
+      senderEmail: resumeData.personalInfo.email || '',
+      senderPhone: resumeData.personalInfo.mobile || '',
+      senderCity: resumeData.personalInfo.location || '',
+      jobTitle: selectedJobRole || '',
+    });
+    setShowCoverLetterDialog(true);
+  };
+
+  // Handle cover letter dialog close
+  const handleCloseCoverLetterDialog = () => {
+    setShowCoverLetterDialog(false);
+  };
+
+  // Handle printing cover letter
+  const handlePrintCoverLetter = useReactToPrint({
+    content: () => coverLetterRef.current,
+    documentTitle: 'Cover Letter',
+  });
+
+  // Update cover letter data
+  const handleCoverLetterDataChange = (field: keyof CoverLetterData, value: string) => {
+    setCoverLetterData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Generate cover letter based on resume data and job description
+  const generateCoverLetter = () => {
+    // Gather skills and experience from resume
+    const skills = Object.values(resumeData.skills).flat().join(', ');
+    const hasEducation = resumeData.education.length > 0;
+    const hasProjects = resumeData.projects.length > 0;
+    const hasCertifications = resumeData.certifications.length > 0;
+    
+    // Generate a professional cover letter based on the data
+    let content = '';
+    
+    if (coverLetterData.style === 'pro') {
+      content = `I am excited to apply for the ${coverLetterData.jobTitle} position ${coverLetterData.jobId ? `(Requisition ID: ${coverLetterData.jobId})` : ''} in ${coverLetterData.senderCity}. As a ${selectedJobRole || 'professional'} with a specialization in ${skills.split(',')[0]}, I bring a solid foundation in ${skills.split(',').slice(0, 3).join(', ')}, and ${skills.split(',').slice(3, 5).join(', ')}. My hands-on experience with ${hasProjects ? resumeData.projects[0].title : 'various projects'} equips me to monitor, analyze, and safeguard sensitive information effectively.
+
+In my ${hasEducation ? `academic journey at ${resumeData.education[0].school}` : 'professional career'} and project endeavors, I ${hasProjects ? `led the development of ${resumeData.projects[0].title}` : 'have worked on several key initiatives'}, ${hasProjects ? resumeData.projects[0].description : 'demonstrating my technical capabilities'}. Additionally, my experience in ${hasProjects && resumeData.projects.length > 1 ? resumeData.projects[1].title : 'various technical domains'} demonstrates my ability to innovate and implement advanced techniques, ensuring optimal outcomes.
+
+I am particularly drawn to this role's emphasis on proactive measures, analytical thinking, and stakeholder collaboration. With my strong analytical skills and commitment to excellence, I am eager to contribute to ${coverLetterData.recipientCompany}'s mission. I look forward to the opportunity to bring my skills and passion to your team.
+
+Thank you for considering my application. I am excited about the prospect of contributing to your organization's mission and would welcome the opportunity for an interview.`;
+    } else {
+      content = `I am writing to express my interest in the ${coverLetterData.jobTitle} position at ${coverLetterData.recipientCompany}. With my background in ${selectedJobRole || 'the field'} and expertise in ${skills.split(',').slice(0, 3).join(', ')}, I believe I would be a valuable addition to your team.
+
+Throughout my career, I have developed strong skills in ${skills.split(',').slice(3, 6).join(', ')}. ${hasProjects ? `My work on ${resumeData.projects[0].title} demonstrates my ability to ${resumeData.projects[0].description.substring(0, 100)}...` : 'I have consistently demonstrated my ability to solve complex problems and deliver results.'} ${hasCertifications ? `I have also earned certifications in ${resumeData.certifications.map(cert => cert.name).join(', ')}, which have enhanced my knowledge in these areas.` : ''}
+
+I am impressed by ${coverLetterData.recipientCompany}'s reputation in the industry and would be excited to contribute to your continued success. I am confident that my skills and experiences align well with the requirements of this position.
+
+I look forward to the opportunity to discuss how my qualifications can benefit your team. Thank you for considering my application.`;
+    }
+    
+    setGeneratedCoverLetter(content);
+    setCoverLetterData(prev => ({ ...prev, letterContent: content }));
+    setShowCoverLetterPreview(true);
+  };
+
+  // Toggle cover letter style
+  const handleCoverLetterStyleChange = (style: 'normal' | 'pro') => {
+    setCoverLetterData(prev => ({ ...prev, style }));
   };
 
   return (
@@ -992,16 +1095,16 @@ function App() {
                       </Button>
                     )}
                   </Box>
-                  
-                  <Box ref={resumeRef}>
-                    <Resume
-                      data={resumeData}
-                      fontFamily={selectedFont}
-                      template={selectedTemplate}
+
+          <Box ref={resumeRef}>
+            <Resume
+              data={resumeData}
+              fontFamily={selectedFont}
+              template={selectedTemplate}
                       pageCount={pageCount}
                       onPageOverflow={handlePageOverflow}
-                    />
-                  </Box>
+            />
+          </Box>
                 </Box>
               </Paper>
         </Box>
@@ -1761,7 +1864,7 @@ function App() {
                     <Box sx={{ textAlign: 'center', width: '100%' }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2', mb: 1 }}>
                         Multiple Pages
-                      </Typography>
+                </Typography>
                       
                       {/* Page count selector */}
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 1 }}>
@@ -1788,9 +1891,9 @@ function App() {
                             }}
                           >
                             {count}
-                          </Box>
+              </Box>
                         ))}
-                      </Box>
+          </Box>
                       
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         {contentOverflow 
@@ -1869,6 +1972,31 @@ function App() {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* Add Cover Letter Button */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+        <Button
+          variant="contained"
+          onClick={() => handlePrint()}
+          sx={{
+            backgroundColor: '#4caf50',
+            '&:hover': { backgroundColor: '#388e3c' },
+            mr: 2
+          }}
+        >
+          Download Resume
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleOpenCoverLetterDialog}
+          sx={{
+            backgroundColor: '#2196f3',
+            '&:hover': { backgroundColor: '#1976d2' },
+          }}
+        >
+          Create Cover Letter
+        </Button>
+      </Box>
     </Container>
   </Box>
 
@@ -1888,6 +2016,396 @@ function App() {
       © {new Date().getFullYear()} Resume Builder by Hacx Singh. All rights reserved.
     </Typography>
   </Box>
+
+  {/* Cover Letter Dialog */}
+  <Dialog 
+    open={showCoverLetterDialog} 
+    onClose={handleCloseCoverLetterDialog}
+    maxWidth="md"
+    fullWidth
+    PaperProps={{
+      sx: {
+        borderRadius: 2,
+        overflow: 'hidden',
+      }
+    }}
+  >
+    <DialogTitle sx={{ 
+      background: 'linear-gradient(135deg, #1976d2, #2196f3)',
+      color: 'white',
+      py: 2.5,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Create Professional Cover Letter
+        </Typography>
+      </Box>
+      <IconButton 
+        onClick={handleCloseCoverLetterDialog}
+        sx={{ color: 'white' }}
+      >
+        <span role="img" aria-label="close">✕</span>
+      </IconButton>
+    </DialogTitle>
+    
+    <DialogContent sx={{ px: 3, py: 3 }}>
+      {coverLetterPreview ? (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, gap: 2 }}>
+            <Button 
+              variant="outlined" 
+              onClick={() => setShowCoverLetterPreview(false)}
+              sx={{ borderColor: '#1976d2', color: '#1976d2' }}
+            >
+              Edit
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={() => handlePrintCoverLetter()}
+              sx={{ bgcolor: '#1976d2' }}
+            >
+              Download
+            </Button>
+          </Box>
+          
+          {/* Cover Letter Preview */}
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 4, 
+              maxHeight: '60vh', 
+              overflow: 'auto',
+              bgcolor: coverLetterData.style === 'pro' ? '#282828' : 'white',
+              color: coverLetterData.style === 'pro' ? 'white' : 'inherit',
+            }}
+            ref={coverLetterRef}
+          >
+            {/* Sender Info - Top Left */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+              <Box>
+                {coverLetterData.style === 'pro' && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="h5" sx={{ 
+                      textTransform: 'uppercase', 
+                      fontWeight: 'bold',
+                      color: coverLetterData.style === 'pro' ? '#2196f3' : 'inherit'
+                    }}>
+                      {coverLetterData.senderName}
+                    </Typography>
+                    <Typography sx={{ 
+                      color: coverLetterData.style === 'pro' ? '#2196f3' : 'inherit',
+                      textTransform: 'uppercase',
+                      fontWeight: 'bold',
+                    }}>
+                      {selectedJobRole || 'Professional'}
+                    </Typography>
+                  </Box>
+                )}
+                
+                {coverLetterData.style === 'normal' && (
+                  <>
+                    <Typography sx={{ fontWeight: 'bold' }}>
+                      {coverLetterData.senderName}
+                    </Typography>
+                    <Typography>
+                      {coverLetterData.senderAddress}
+                    </Typography>
+                    <Typography>
+                      {coverLetterData.senderCity}
+                    </Typography>
+                    <Typography>
+                      {coverLetterData.senderPhone}
+                    </Typography>
+                    <Typography>
+                      {coverLetterData.senderEmail}
+                    </Typography>
+                  </>
+                )}
+              </Box>
+              
+              {/* Date - Top Right */}
+              <Box>
+                <Typography>
+                  {coverLetterData.date}
+                </Typography>
+              </Box>
+            </Box>
+            
+            {/* Horizontal Line for Pro Style */}
+            {coverLetterData.style === 'pro' && (
+              <Box sx={{ 
+                width: '100%', 
+                height: '2px', 
+                bgcolor: '#2196f3', 
+                mb: 3 
+              }} />
+            )}
+            
+            {/* Recipient Info */}
+            <Box sx={{ mb: 3 }}>
+              <Typography>
+                {coverLetterData.recipientName}
+              </Typography>
+              <Typography>
+                {coverLetterData.recipientCompany}
+              </Typography>
+              <Typography>
+                {coverLetterData.senderCity}
+              </Typography>
+            </Box>
+            
+            {/* Greeting */}
+            <Box sx={{ mb: 2 }}>
+              <Typography>
+                Dear {coverLetterData.recipientName},
+              </Typography>
+            </Box>
+            
+            {/* Cover Letter Content */}
+            <Box sx={{ mb: 3 }}>
+              {coverLetterData.letterContent.split('\n\n').map((paragraph, index) => (
+                <Typography key={index} sx={{ mb: 2, textAlign: 'justify' }}>
+                  {paragraph}
+                </Typography>
+              ))}
+            </Box>
+            
+            {/* Closing */}
+            <Box>
+              <Typography sx={{ mb: 2 }}>
+                Sincerely,
+              </Typography>
+              <Typography sx={{ fontWeight: 'bold' }}>
+                {coverLetterData.senderName}
+              </Typography>
+              {coverLetterData.style === 'pro' ? (
+                <Typography>
+                  {coverLetterData.senderCity}
+                </Typography>
+              ) : null}
+              <Typography>
+                {coverLetterData.senderEmail}
+              </Typography>
+              {coverLetterData.style === 'pro' && (
+                <Typography>
+                  {coverLetterData.senderPhone}
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Box>
+      ) : (
+        <Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'medium' }}>
+              Choose Cover Letter Style
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              {/* Normal Style Option */}
+              <Paper 
+                elevation={coverLetterData.style === 'normal' ? 3 : 1}
+                onClick={() => handleCoverLetterStyleChange('normal')}
+                sx={{ 
+                  p: 2, 
+                  flex: 1, 
+                  cursor: 'pointer',
+                  border: coverLetterData.style === 'normal' ? '2px solid #2196f3' : '1px solid #e0e0e0',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: '#2196f3',
+                  }
+                }}
+              >
+                <Box sx={{ height: 140, mb: 2, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+                  <img 
+                    src="https://i.imgur.com/QUPlEAZ.png" 
+                    alt="Normal cover letter style"
+                    style={{ 
+                      width: '80%', 
+                      objectFit: 'cover', 
+                      borderRadius: 4,
+                      border: '1px solid #e0e0e0' 
+                    }}
+                  />
+                </Box>
+                <Typography variant="subtitle1" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  Normal Style
+                </Typography>
+                <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                  Traditional, clean layout with standard formatting
+                </Typography>
+              </Paper>
+              
+              {/* Pro Style Option */}
+              <Paper 
+                elevation={coverLetterData.style === 'pro' ? 3 : 1}
+                onClick={() => handleCoverLetterStyleChange('pro')}
+                sx={{ 
+                  p: 2, 
+                  flex: 1, 
+                  cursor: 'pointer',
+                  border: coverLetterData.style === 'pro' ? '2px solid #2196f3' : '1px solid #e0e0e0',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: '#2196f3',
+                  }
+                }}
+              >
+                <Box sx={{ height: 140, mb: 2, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+                  <img 
+                    src="https://i.imgur.com/mAjnUo3.png" 
+                    alt="Pro cover letter style"
+                    style={{ 
+                      width: '80%', 
+                      objectFit: 'cover', 
+                      borderRadius: 4,
+                      border: '1px solid #e0e0e0' 
+                    }}
+                  />
+                </Box>
+                <Typography variant="subtitle1" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  Pro Style
+                </Typography>
+                <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                  Modern design with accent colors and strategic formatting
+                </Typography>
+              </Paper>
+            </Box>
+          </Box>
+          
+          <Grid container spacing={2}>
+            {/* Recipient Info */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
+                Recipient Information
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Company Name"
+                value={coverLetterData.recipientCompany}
+                onChange={(e) => handleCoverLetterDataChange('recipientCompany', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Recipient Name"
+                value={coverLetterData.recipientName}
+                onChange={(e) => handleCoverLetterDataChange('recipientName', e.target.value)}
+                placeholder="Hiring Manager"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Job Title"
+                value={coverLetterData.jobTitle}
+                onChange={(e) => handleCoverLetterDataChange('jobTitle', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Job ID (Optional)"
+                value={coverLetterData.jobId || ''}
+                onChange={(e) => handleCoverLetterDataChange('jobId', e.target.value)}
+              />
+            </Grid>
+            
+            {/* Sender Info */}
+            <Grid item xs={12} sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
+                Your Information
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Your Name"
+                value={coverLetterData.senderName}
+                onChange={(e) => handleCoverLetterDataChange('senderName', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Your Address"
+                value={coverLetterData.senderAddress}
+                onChange={(e) => handleCoverLetterDataChange('senderAddress', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="City, State"
+                value={coverLetterData.senderCity}
+                onChange={(e) => handleCoverLetterDataChange('senderCity', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                value={coverLetterData.senderEmail}
+                onChange={(e) => handleCoverLetterDataChange('senderEmail', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Phone"
+                value={coverLetterData.senderPhone}
+                onChange={(e) => handleCoverLetterDataChange('senderPhone', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Date"
+                value={coverLetterData.date}
+                onChange={(e) => handleCoverLetterDataChange('date', e.target.value)}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+      )}
+    </DialogContent>
+    
+    <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+      {!coverLetterPreview ? (
+        <>
+          <Button 
+            onClick={handleCloseCoverLetterDialog}
+            sx={{ color: 'text.secondary' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={generateCoverLetter}
+            sx={{ 
+              bgcolor: '#1976d2',
+              '&:hover': { bgcolor: '#1565c0' } 
+            }}
+            disabled={!coverLetterData.recipientCompany || !coverLetterData.jobTitle || !coverLetterData.senderName || !coverLetterData.senderEmail || !coverLetterData.senderPhone}
+          >
+            Generate Cover Letter
+          </Button>
+        </>
+      ) : null}
+    </DialogActions>
+  </Dialog>
 </Box>
   );
 }
