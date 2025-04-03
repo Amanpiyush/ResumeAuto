@@ -85,22 +85,79 @@ const skillSuggestions: { [key: string]: string[] } = {
 
 const initialResumeData: ResumeData = {
   personalInfo: {
-    name: '',
-    linkedin: '',
-    location: '',
-    email: '',
-    mobile: '',
+    name: "Alex Johnson",
+    email: "alex.johnson@example.com",
+    mobile: "(555) 123-4567",
+    location: "New York, NY",
+    linkedin: "linkedin.com/in/alexjohnson",
   },
-  summary: '',
-  education: [],
+  summary: "Dedicated and innovative Full Stack Developer with over 5 years of experience building scalable web applications and services. Proficient in JavaScript, TypeScript, React, Node.js, and cloud technologies with a strong focus on creating responsive, user-centered designs. Passionate about clean code architecture and implementing best practices in software development. Experienced in leading small development teams and mentoring junior developers. Seeking to leverage my technical expertise and leadership skills in a challenging role that focuses on creating impactful digital solutions for enterprise clients.",
   skills: {
-    'Technical Skills': [],
-    'Soft Skills': [],
-    'Tools & Technologies': [],
+    "Technical Skills": ["JavaScript", "TypeScript", "React", "Node.js", "Express", "MongoDB", "PostgreSQL", "AWS", "Docker", "Kubernetes", "REST APIs", "GraphQL", "Redux", "Material UI", "Git"],
+    "Soft Skills": ["Leadership", "Communication", "Problem Solving", "Team Collaboration", "Project Management", "Agile Methodologies", "Time Management", "Critical Thinking"],
+    "Tools": ["VS Code", "GitHub", "GitLab", "Jira", "Confluence", "Postman", "Figma", "Adobe XD", "Slack", "Microsoft Office"]
   },
-  projects: [],
-  certifications: [],
-  publications: [],
+  education: [
+    {
+      school: "Stanford University",
+      degree: "M.S. in Computer Science",
+      location: "Stanford, CA",
+      date: "2015-2017",
+      gpa: "3.85"
+    },
+    {
+      school: "University of California, Berkeley",
+      degree: "B.S. in Computer Science",
+      location: "Berkeley, CA",
+      date: "2011-2015",
+      gpa: "3.75"
+    }
+  ],
+  projects: [
+    {
+      title: "Enterprise Resource Planning System",
+      description: "Designed and developed a comprehensive ERP system that integrated inventory management, human resources, financial reporting, and customer relationship management modules. The solution enhanced business efficiency by 45% and reduced manual data entry errors by 75%. Implemented real-time analytics dashboard for executive decision making and automated numerous business processes to improve productivity.",
+      tech: "React, Node.js, Express, MongoDB, Redux, AWS, Docker",
+      date: "Jan 2022 - Dec 2022",
+      inProgress: false
+    },
+    {
+      title: "Healthcare Patient Portal",
+      description: "Led the development of a secure patient portal for a healthcare provider serving over 50,000 patients. The system features appointment scheduling, medical record access, secure messaging with healthcare providers, prescription refill requests, and billing management. Implemented HIPAA-compliant security measures and integrated with existing healthcare systems through custom APIs.",
+      tech: "TypeScript, React, Node.js, PostgreSQL, Azure, FHIR APIs",
+      date: "Mar 2021 - Nov 2021",
+      inProgress: false
+    },
+    {
+      title: "AI-Powered Content Management System",
+      description: "Currently building an innovative CMS that leverages artificial intelligence to automate content creation, optimization, and distribution across multiple channels. The system uses natural language processing to generate SEO-friendly content, recommend improvements, and analyze performance metrics. Implementing machine learning algorithms to personalize content based on user behavior and preferences.",
+      tech: "Python, React, TensorFlow, AWS, Elasticsearch, GraphQL",
+      date: "Jun 2023 - Present",
+      inProgress: true
+    }
+  ],
+  certifications: [
+    {
+      name: "AWS Certified Solutions Architect",
+      details: "Comprehensive certification covering design and deployment of secure and robust applications on AWS. Gained expertise in selecting appropriate AWS services, estimating AWS costs, and implementing cost control strategies. Demonstrated ability to architect scalable, highly available, and fault-tolerant systems on AWS.",
+      company: "Amazon Web Services",
+      date: "Mar 2022"
+    },
+    {
+      name: "Google Professional Cloud Developer",
+      details: "Advanced certification validating ability to build, deploy, and monitor applications on Google Cloud Platform. Developed skills in using GCP to design and build scalable, highly available, and reliable cloud-native applications. Mastered Kubernetes, Cloud Run, App Engine, and various database services.",
+      company: "Google Cloud",
+      date: "Sep 2021"
+    }
+  ],
+  publications: [
+    {
+      title: "Microservices Architecture: Best Practices for Scale",
+      details: "Published in-depth technical article on implementing microservices architecture for enterprise applications. Covered service boundaries, intercommunication patterns, data consistency challenges, deployment strategies, and monitoring. Provided real-world case studies of successful implementations and lessons learned from production environments.",
+      technologies: "Microservices, Docker, Kubernetes, API Gateway, Event Sourcing",
+      date: "May 2023"
+    }
+  ],
 };
 
 function App() {
