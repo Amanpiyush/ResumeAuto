@@ -144,7 +144,7 @@ function App() {
   };
 
   const handleCloseSkillSuggestions = () => {
-    setShowSkillSuggestions(false);
+      setShowSkillSuggestions(false);
     setSkillSuggestionCategory('');
   };
 
@@ -432,7 +432,7 @@ function App() {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* App content */}
       <Box sx={{ flex: 1, mb: 4 }}>
-        <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
           {/* Global styles for animations */}
           <style>
             {`
@@ -447,143 +447,143 @@ function App() {
             `}
           </style>
           
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
-            <Typography variant="h3" gutterBottom sx={{ color: '#1976d2', fontWeight: 'bold' }}>
-              TOP Resume Builder
+      <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Typography variant="h3" gutterBottom sx={{ color: '#1976d2', fontWeight: 'bold' }}>
+          TOP Resume Builder
+        </Typography>
+        <Typography variant="subtitle1" sx={{ color: '#666', mb: 3 }}>
+          Create your professional resume in minutes
+        </Typography>
+      </Box>
+
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+        gap: 3,
+        mt: 3
+      }}>
+        {/* Left Side - Form */}
+        <Box sx={{ position: 'sticky', top: 20 }}>
+          <Paper sx={{ p: 3, mb: 3, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+              Resume Settings
             </Typography>
-            <Typography variant="subtitle1" sx={{ color: '#666', mb: 3 }}>
-              Create your professional resume in minutes
-            </Typography>
-          </Box>
-
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            gap: 3,
-            mt: 3
-          }}>
-            {/* Left Side - Form */}
-            <Box sx={{ position: 'sticky', top: 20 }}>
-              <Paper sx={{ p: 3, mb: 3, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
-                  Resume Settings
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Font</InputLabel>
-                    <Select
-                      value={selectedFont}
-                      label="Font"
-                      onChange={(e) => setSelectedFont(e.target.value)}
-                      sx={{
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1976d2',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1565c0',
-                        },
-                      }}
-                    >
-                      {fonts.map((font) => (
-                        <MenuItem key={font} value={font} style={{ fontFamily: font }}>
-                          {font}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <InputLabel>Template</InputLabel>
-                    <Select
-                      value={selectedTemplate}
-                      label="Template"
-                      onChange={(e) => setSelectedTemplate(e.target.value as typeof selectedTemplate)}
-                      sx={{
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1976d2',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1565c0',
-                        },
-                      }}
-                    >
-                      <MenuItem value="amazon">Amazon Style</MenuItem>
-                      <MenuItem value="meta">Meta Style</MenuItem>
-                      <MenuItem value="apple">Apple Style</MenuItem>
-                      <MenuItem value="google">Google Style</MenuItem>
-                      <MenuItem value="microsoft">Microsoft Style</MenuItem>
-                      <MenuItem value="custom">Custom Style</MenuItem>
-                      <MenuItem value="two-column">Two Column Style</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Job Role</InputLabel>
-                  <Select
-                    value={selectedJobRole}
-                    label="Job Role"
-                    onChange={(e) => handleJobRoleSelect(e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#1976d2',
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#1565c0',
-                      },
-                    }}
-                  >
-                    {jobRoles.map((role) => (
-                      <MenuItem key={role} value={role}>
-                        {role}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  label="Paste Tailored Resume Content"
-                  value={tailoredContent}
-                  onChange={handleTailoredContentChange}
-                  helperText="Paste your resume content in any format"
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>Font</InputLabel>
+                <Select
+                  value={selectedFont}
+                  label="Font"
+                  onChange={(e) => setSelectedFont(e.target.value)}
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: '#1976d2',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#1565c0',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#1976d2',
-                      },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1976d2',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1565c0',
                     },
                   }}
-                />
+                >
+                  {fonts.map((font) => (
+                    <MenuItem key={font} value={font} style={{ fontFamily: font }}>
+                      {font}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>Template</InputLabel>
+                <Select
+                  value={selectedTemplate}
+                  label="Template"
+                  onChange={(e) => setSelectedTemplate(e.target.value as typeof selectedTemplate)}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1976d2',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1565c0',
+                    },
+                  }}
+                >
+                  <MenuItem value="amazon">Amazon Style</MenuItem>
+                  <MenuItem value="meta">Meta Style</MenuItem>
+                  <MenuItem value="apple">Apple Style</MenuItem>
+                  <MenuItem value="google">Google Style</MenuItem>
+                  <MenuItem value="microsoft">Microsoft Style</MenuItem>
+                  <MenuItem value="custom">Custom Style</MenuItem>
+                      <MenuItem value="two-column">Two Column Style</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
 
-                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                  <Button
-                    variant="contained"
-                    onClick={handleConvertContent}
-                    sx={{
-                      backgroundColor: '#1976d2',
-                      '&:hover': { backgroundColor: '#1565c0' },
-                    }}
-                  >
-                    Convert Content
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={handleFinish}
-                    sx={{
-                      backgroundColor: isFinished ? '#4caf50' : '#f44336',
-                      '&:hover': { 
-                        backgroundColor: isFinished ? '#388e3c' : '#d32f2f' 
-                      },
-                    }}
-                  >
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Job Role</InputLabel>
+              <Select
+                value={selectedJobRole}
+                label="Job Role"
+                onChange={(e) => handleJobRoleSelect(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#1976d2',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#1565c0',
+                  },
+                }}
+              >
+                {jobRoles.map((role) => (
+                  <MenuItem key={role} value={role}>
+                    {role}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Paste Tailored Resume Content"
+              value={tailoredContent}
+              onChange={handleTailoredContentChange}
+              helperText="Paste your resume content in any format"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: '#1976d2',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#1565c0',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#1976d2',
+                  },
+                },
+              }}
+            />
+
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Button
+                variant="contained"
+                onClick={handleConvertContent}
+                sx={{
+                  backgroundColor: '#1976d2',
+                  '&:hover': { backgroundColor: '#1565c0' },
+                }}
+              >
+                Convert Content
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleFinish}
+                sx={{
+                  backgroundColor: isFinished ? '#4caf50' : '#f44336',
+                  '&:hover': { 
+                    backgroundColor: isFinished ? '#388e3c' : '#d32f2f' 
+                  },
+                }}
+              >
                     {isFinished ? `Your ATS Score: ${atsScore}%` : 'Finish Resume'}
                   </Button>
                   <Button
@@ -599,9 +599,9 @@ function App() {
                     }}
                   >
                     Reset Resume
-                  </Button>
-                </Box>
-              </Paper>
+              </Button>
+            </Box>
+          </Paper>
 
               <ResumeForm 
                 data={resumeData} 
@@ -610,10 +610,10 @@ function App() {
                 skillSuggestions={skillSuggestions}
                 onOpenSkillSuggestions={handleOpenSkillSuggestions}
               />
-            </Box>
+        </Box>
 
-            {/* Right Side - Preview */}
-            <Box sx={{ position: 'sticky', top: 20 }}>
+        {/* Right Side - Preview */}
+        <Box sx={{ position: 'sticky', top: 20 }}>
               <Paper 
                 elevation={3} 
                 sx={{ 
@@ -640,7 +640,7 @@ function App() {
                   }}>
                     <Typography variant="body2" fontWeight="medium" sx={{ color: '#1976d2' }}>
                       ATS Compatibility Score
-                    </Typography>
+            </Typography>
                     <Typography 
                       variant="body2" 
                       fontWeight="bold" 
@@ -712,53 +712,53 @@ function App() {
                   borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
                   gap: 1.5, 
                 }}>
-                  <Button
-                    variant="contained"
+              <Button
+                variant="contained"
                     onClick={handleOpenDownloadDialog}
                     startIcon={<span role="img" aria-label="download">📥</span>}
-                    sx={{
-                      backgroundColor: '#1976d2',
-                      '&:hover': { backgroundColor: '#1565c0' },
+                sx={{
+                  backgroundColor: '#1976d2',
+                  '&:hover': { backgroundColor: '#1565c0' },
                       flexGrow: 1
-                    }}
-                  >
-                    Download PDF
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={handleDownloadJSON}
-                    sx={{
-                      borderColor: '#1976d2',
-                      color: '#1976d2',
-                      '&:hover': {
-                        borderColor: '#1565c0',
-                        backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                      },
-                    }}
-                  >
+                }}
+              >
+                Download PDF
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleDownloadJSON}
+                sx={{
+                  borderColor: '#1976d2',
+                  color: '#1976d2',
+                  '&:hover': {
+                    borderColor: '#1565c0',
+                    backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                  },
+                }}
+              >
                     Save
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    sx={{
-                      borderColor: '#1976d2',
-                      color: '#1976d2',
-                      '&:hover': {
-                        borderColor: '#1565c0',
-                        backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                      },
-                    }}
-                  >
+              </Button>
+              <Button
+                variant="outlined"
+                component="label"
+                sx={{
+                  borderColor: '#1976d2',
+                  color: '#1976d2',
+                  '&:hover': {
+                    borderColor: '#1565c0',
+                    backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                  },
+                }}
+              >
                     Open
-                    <input
-                      type="file"
-                      hidden
-                      accept=".json"
-                      onChange={handleFileUpload}
-                    />
-                  </Button>
-                </Box>
+                <input
+                  type="file"
+                  hidden
+                  accept=".json"
+                  onChange={handleFileUpload}
+                />
+              </Button>
+            </Box>
 
                 {/* Resume Render Area */}
                 <Box sx={{ 
@@ -789,19 +789,19 @@ function App() {
                       Content exceeds {pageCount} {pageCount === 1 ? 'page' : 'pages'} - {pageCount < 5 ? `Switch to ${pageCount + 1} pages or ` : ''}reduce content
                     </Box>
                   )}
-                  <Box ref={resumeRef}>
-                    <Resume
-                      data={resumeData}
-                      fontFamily={selectedFont}
-                      template={selectedTemplate}
+          <Box ref={resumeRef}>
+            <Resume
+              data={resumeData}
+              fontFamily={selectedFont}
+              template={selectedTemplate}
                       pageCount={pageCount}
                       onPageOverflow={handlePageOverflow}
-                    />
-                  </Box>
+            />
+          </Box>
                 </Box>
               </Paper>
-            </Box>
-          </Box>
+        </Box>
+      </Box>
 
           {/* Skill Suggestions Dialog */}
           <Dialog 
@@ -1080,7 +1080,7 @@ function App() {
                   </Typography>
                 </Box>
               </Box>
-            </DialogContent>
+        </DialogContent>
             
             <DialogActions sx={{ 
               p: 2, 
@@ -1109,7 +1109,7 @@ function App() {
                   }}
                 >
                   Cancel
-                </Button>
+          </Button>
                 <Button 
                   onClick={handleAddSelectedSkills}
                   variant="contained"
@@ -1129,15 +1129,15 @@ function App() {
                   Add Selected
                 </Button>
               </Box>
-            </DialogActions>
-          </Dialog>
+        </DialogActions>
+      </Dialog>
 
           {/* ATS Score Feedback Dialog - Redesigned for professional look */}
-          <Dialog 
-            open={showAtsFeedback} 
-            onClose={handleCloseAtsFeedback}
+      <Dialog 
+        open={showAtsFeedback} 
+        onClose={handleCloseAtsFeedback}
             maxWidth="md"
-            fullWidth
+        fullWidth
             PaperProps={{
               sx: {
                 borderRadius: 2,
@@ -1161,7 +1161,7 @@ function App() {
                 py: 2.5
               }}>
                 <Typography variant="h5" sx={{ fontWeight: 600, color: '#1565c0' }}>
-              ATS Score Analysis
+          ATS Score Analysis
                 </Typography>
                 <Button 
                   onClick={handleCloseAtsFeedback} 
@@ -1177,7 +1177,7 @@ function App() {
                 >
                   ✕
                 </Button>
-            </DialogTitle>
+        </DialogTitle>
 
               <DialogContent sx={{ px: 0, py: 0 }}>
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, height: '100%' }}>
@@ -1236,9 +1236,9 @@ function App() {
                           color: atsScore && atsScore > 70 ? '#4caf50' : 
                                 atsScore && atsScore > 40 ? '#ff9800' : '#f44336',
                           transition: 'color 0.5s ease-in-out'
-                }}>
-                  {atsScore}%
-                </Typography>
+            }}>
+              {atsScore}%
+            </Typography>
                         <Typography variant="body2" sx={{ 
                           color: 'text.secondary',
                           fontWeight: 500,
@@ -1246,7 +1246,7 @@ function App() {
                           textTransform: 'uppercase'
                         }}>
                           ATS Score
-                </Typography>
+            </Typography>
                       </Box>
                     </Box>
                     
@@ -1260,12 +1260,12 @@ function App() {
                       }}>
                         {atsScore && atsScore > 70 ? 'Excellent Score!' : 
                         atsScore && atsScore > 40 ? 'Good Progress' : 'Needs Improvement'}
-                  </Typography>
+              </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '220px' }}>
                         {atsScore && atsScore > 70 
                           ? 'Your resume is well-optimized for ATS systems.'
                           : 'Follow the suggestions to improve your ATS compatibility.'}
-                  </Typography>
+              </Typography>
                     </Box>
                   </Box>
 
@@ -1292,7 +1292,7 @@ function App() {
                       >
                         <span role="img" aria-label="breakdown" style={{ fontSize: '1.2rem' }}>📊</span>
                         Score Breakdown
-                  </Typography>
+              </Typography>
                       
                       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                         {[
@@ -1317,7 +1317,7 @@ function App() {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <Typography variant="body2" fontWeight="medium">
                                 {item.name}
-                    </Typography>
+              </Typography>
                               <Typography 
                                 variant="body2" 
                                 sx={{ 
@@ -1331,7 +1331,7 @@ function App() {
                                 }}
                               >
                                 {item.value}%
-                    </Typography>
+              </Typography>
                           </Box>
                           <Box 
                             sx={{ 
@@ -1419,7 +1419,7 @@ function App() {
         }}>
           <Typography variant="h6" sx={{ fontWeight: 600, color: '#1565c0' }}>
             Download Resume
-          </Typography>
+              </Typography>
         </DialogTitle>
         
         <DialogContent sx={{ px: 3, py: 3 }}>
@@ -1437,18 +1437,18 @@ function App() {
                   borderRadius: '50%',
                   animation: 'spin 1s linear infinite',
                 }}/>
-              </Box>
+            </Box>
               <Typography variant="body2" color="text.secondary">
                 {downloadFormat === 1 
                   ? 'Optimizing content for single page format...' 
                   : `Preparing ${downloadFormat}-page document...`}
-              </Typography>
+                </Typography>
             </Box>
           ) : (
             <>
               <Typography variant="body1" sx={{ mb: 3 }}>
                 Choose your preferred resume format:
-              </Typography>
+                </Typography>
               
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 {/* Single Page Option */}
@@ -1493,12 +1493,12 @@ function App() {
                   <Box sx={{ textAlign: 'center' }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
                       Single Page
-                    </Typography>
+                </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                       {contentOverflow 
                         ? "Content will be condensed to fit one page" 
                         : "All content fits on one page"}
-                    </Typography>
+                </Typography>
                   </Box>
                 </Paper>
                 
@@ -1567,10 +1567,10 @@ function App() {
                       {contentOverflow 
                         ? `Will use ${Math.min(5, pageCount + 1)} pages to fit all content` 
                         : `Will use ${pageCount} page${pageCount > 1 ? 's' : ''}`}
-                    </Typography>
-                  </Box>
-                </Paper>
+                </Typography>
               </Box>
+                </Paper>
+          </Box>
               
               {contentOverflow && pageCount === 1 && (
                 <Box sx={{ 
@@ -1609,8 +1609,8 @@ function App() {
               }}
             >
               Cancel
-            </Button>
-          </DialogActions>
+          </Button>
+        </DialogActions>
         )}
       </Dialog>
 
@@ -1644,7 +1644,7 @@ function App() {
     </Typography>
   </Box>
 </Box>
-);
+  );
 }
 
 export default App;
