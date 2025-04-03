@@ -161,9 +161,16 @@ function App() {
   const [coverLetterPreview, setShowCoverLetterPreview] = useState<boolean>(false);
   const coverLetterRef = useRef<HTMLDivElement>(null);
 
+  // Handle printing resume
   const handlePrint = useReactToPrint({
     contentRef: resumeRef,
     documentTitle: 'Resume',
+  });
+
+  // Handle printing cover letter
+  const handlePrintCoverLetter = useReactToPrint({
+    contentRef: coverLetterRef,
+    documentTitle: 'Cover Letter',
   });
 
   const handleJobRoleSelect = (role: string) => {
@@ -611,12 +618,6 @@ function App() {
     setShowCoverLetterDialog(false);
   };
 
-  // Handle printing cover letter
-  const handlePrintCoverLetter = useReactToPrint({
-    content: () => coverLetterRef.current,
-    documentTitle: 'Cover Letter',
-  });
-
   // Update cover letter data
   const handleCoverLetterDataChange = (field: keyof CoverLetterData, value: string) => {
     setCoverLetterData(prev => ({ ...prev, [field]: value }));
@@ -803,6 +804,7 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 sx={{
                   backgroundColor: '#1976d2',
                   '&:hover': { backgroundColor: '#1565c0' },
+                  flex: '1',
                 }}
               >
                 Convert Content
@@ -815,10 +817,14 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                   '&:hover': { 
                     backgroundColor: isFinished ? '#388e3c' : '#d32f2f' 
                   },
+                  flex: '1',
                 }}
               >
                 {isFinished ? `Your ATS Score: ${atsScore}%` : 'Finish Resume'}
               </Button>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
               <Button
                 variant="outlined"
                 onClick={resetResume}
@@ -829,6 +835,7 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                     borderColor: '#ed6c02',
                     backgroundColor: 'rgba(255, 152, 0, 0.04)'
                   },
+                  flex: '1',
                 }}
               >
                 Reset Resume
@@ -843,9 +850,25 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                     borderColor: '#1976d2',
                     backgroundColor: 'rgba(33, 150, 243, 0.04)'
                   },
+                  flex: '1',
                 }}
               >
-                Fill Dummy Content
+                Fill Dummy
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleOpenCoverLetterDialog}
+                sx={{
+                  borderColor: '#4caf50',
+                  color: '#4caf50',
+                  '&:hover': { 
+                    borderColor: '#388e3c',
+                    backgroundColor: 'rgba(76, 175, 80, 0.04)'
+                  },
+                  flex: '1',
+                }}
+              >
+                Cover Letter
               </Button>
             </Box>
           </Paper>
@@ -861,112 +884,112 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
 
         {/* Right Side - Preview */}
         <Box sx={{ position: 'sticky', top: 20 }}>
-              <Paper 
-                elevation={3} 
-                sx={{ 
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                }}
-              >
-                {/* ATS Score Display */}
-                <Box sx={{ 
-                  p: 2, 
-                  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-                  backgroundColor: '#f8fbff',
-                  borderRadius: '8px 8px 0 0'
-                }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    mb: 1,
-                    borderRadius: 1,
-                    p: 1,
-                    backgroundColor: 'rgba(25, 118, 210, 0.05)',
-                    border: '1px solid rgba(25, 118, 210, 0.1)'
-                  }}>
-                    <Typography variant="body2" fontWeight="medium" sx={{ color: '#1976d2' }}>
-                      ATS Compatibility Score
-            </Typography>
-                    <Typography 
-                      variant="body2" 
-                      fontWeight="bold" 
-                      sx={{ 
-                        color: atsScore === null ? 'text.secondary' : 
-                              atsScore > 70 ? '#4caf50' : 
-                              atsScore > 40 ? '#ff9800' : '#f44336',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        transition: 'color 0.5s ease-in-out'
-                      }}
-                    >
-                      {atsScore !== null && (
-                        <span 
-                          role="img" 
-                          aria-label={atsScore > 70 ? "good" : atsScore > 40 ? "warning" : "poor"}
-                        >
-                          {atsScore > 70 ? '✅' : atsScore > 40 ? '⚠️' : '❌'}
-                        </span>
-                      )}
-                      {atsScore === null ? 'Not calculated' : `${atsScore}%`}
-                    </Typography>
-                  </Box>
-                  
-                  {/* Animated progress bar */}
-                  <Box sx={{ width: '100%' }}>
-                    <Box 
-                      sx={{ 
-                        height: 10, 
-                        width: '100%', 
-                        bgcolor: 'rgba(0, 0, 0, 0.06)',
-                        borderRadius: 5,
-                        overflow: 'hidden',
-                        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
-                        border: '1px solid rgba(0,0,0,0.03)'
-                      }}
-                    >
-                      <Box 
-                        sx={{ 
-                          height: '100%', 
-                          width: `${atsScore || 0}%`, 
-                          bgcolor: atsScore && atsScore > 70 ? '#4caf50' : 
-                                 atsScore && atsScore > 40 ? '#ff9800' : 
-                                 '#f44336',
-                          transition: 'width 1s ease-in-out'
-                        }} 
-                      />
-                    </Box>
-                  </Box>
-                  
-                  {/* Score breakdown */}
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            {/* ATS Score Display */}
+            <Box sx={{ 
+              p: 2, 
+              borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+              backgroundColor: '#f8fbff',
+              borderRadius: '8px 8px 0 0'
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                mb: 1,
+                borderRadius: 1,
+                p: 1,
+                backgroundColor: 'rgba(25, 118, 210, 0.05)',
+                border: '1px solid rgba(25, 118, 210, 0.1)'
+              }}>
+                <Typography variant="body2" fontWeight="medium" sx={{ color: '#1976d2' }}>
+                  ATS Compatibility Score
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  fontWeight="bold" 
+                  sx={{ 
+                    color: atsScore === null ? 'text.secondary' : 
+                          atsScore > 70 ? '#4caf50' : 
+                          atsScore > 40 ? '#ff9800' : '#f44336',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    transition: 'color 0.5s ease-in-out'
+                  }}
+                >
                   {atsScore !== null && (
-                    <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        Incomplete
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        Excellent
-                      </Typography>
-                    </Box>
+                    <span 
+                      role="img" 
+                      aria-label={atsScore > 70 ? "good" : atsScore > 40 ? "warning" : "poor"}
+                    >
+                      {atsScore > 70 ? '✅' : atsScore > 40 ? '⚠️' : '❌'}
+                    </span>
                   )}
+                  {atsScore === null ? 'Not calculated' : `${atsScore}%`}
+                </Typography>
+              </Box>
+              
+              {/* Animated progress bar */}
+              <Box sx={{ width: '100%' }}>
+                <Box 
+                  sx={{ 
+                    height: 10, 
+                    width: '100%', 
+                    bgcolor: 'rgba(0, 0, 0, 0.06)',
+                    borderRadius: 5,
+                    overflow: 'hidden',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
+                    border: '1px solid rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      height: '100%', 
+                      width: `${atsScore || 0}%`, 
+                      bgcolor: atsScore && atsScore > 70 ? '#4caf50' : 
+                             atsScore && atsScore > 40 ? '#ff9800' : 
+                             '#f44336',
+                      transition: 'width 1s ease-in-out'
+                    }} 
+                  />
                 </Box>
+              </Box>
+              
+              {/* Score breakdown */}
+              {atsScore !== null && (
+                <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    Incomplete
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    Excellent
+                  </Typography>
+                </Box>
+              )}
+            </Box>
 
-                {/* Action Buttons */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  p: 2,
-                  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-                  gap: 1.5, 
-                }}>
+            {/* Action Buttons */}
+            <Box sx={{ 
+              display: 'flex', 
+              p: 2,
+              borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+              gap: 1.5, 
+            }}>
               <Button
                 variant="contained"
-                    onClick={handleOpenDownloadDialog}
-                    startIcon={<span role="img" aria-label="download">📥</span>}
+                onClick={handleOpenDownloadDialog}
+                startIcon={<span role="img" aria-label="download">📥</span>}
                 sx={{
                   backgroundColor: '#1976d2',
                   '&:hover': { backgroundColor: '#1565c0' },
-                      flexGrow: 1
+                  flexGrow: 1
                 }}
               >
                 Download PDF
@@ -977,13 +1000,13 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 sx={{
                   borderColor: '#1976d2',
                   color: '#1976d2',
-                  '&:hover': {
+                  '&:hover': { 
                     borderColor: '#1565c0',
                     backgroundColor: 'rgba(25, 118, 210, 0.04)',
                   },
                 }}
               >
-                    Save
+                Save
               </Button>
               <Button
                 variant="outlined"
@@ -997,7 +1020,7 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                   },
                 }}
               >
-                    Open
+                Open
                 <input
                   type="file"
                   hidden
@@ -1007,106 +1030,106 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
               </Button>
             </Box>
 
-                {/* Resume Render Area */}
+            {/* Resume Render Area */}
+            <Box sx={{ 
+              p: 2, 
+              maxHeight: '70vh', 
+              overflow: 'auto',
+              position: 'relative' 
+            }}>
+              {/* Bottom Overflow Warning */}
+              {contentOverflow && (
                 <Box sx={{ 
-                  p: 2, 
-                  maxHeight: '70vh', 
-                  overflow: 'auto',
-                  position: 'relative' 
+                  position: 'sticky', 
+                  bottom: 0, 
+                  width: '100%',
+                  textAlign: 'center',
+                  backgroundColor: 'rgba(255, 244, 229, 0.9)',
+                  color: '#ed6c02',
+                  p: 1,
+                  fontSize: '0.85rem',
+                  fontWeight: 'medium',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(237, 108, 2, 0.2)',
+                  backdropFilter: 'blur(4px)',
+                  zIndex: 10,
+                  mb: 1,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                 }}>
-                  {/* Bottom Overflow Warning */}
-                  {contentOverflow && (
-                    <Box sx={{ 
-                      position: 'sticky', 
-                      bottom: 0, 
-                      width: '100%',
-                      textAlign: 'center',
-                      backgroundColor: 'rgba(255, 244, 229, 0.9)',
-                      color: '#ed6c02',
-                      p: 1,
-                      fontSize: '0.85rem',
-                      fontWeight: 'medium',
-                      borderRadius: '4px',
-                      border: '1px solid rgba(237, 108, 2, 0.2)',
-                      backdropFilter: 'blur(4px)',
-                      zIndex: 10,
-                      mb: 1,
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                    }}>
-                      Content exceeds {pageCount} {pageCount === 1 ? 'page' : 'pages'} - {pageCount < 5 ? `Switch to ${pageCount + 1} pages or ` : ''}reduce content
-                    </Box>
-                  )}
+                  Content exceeds {pageCount} {pageCount === 1 ? 'page' : 'pages'} - {pageCount < 5 ? `Switch to ${pageCount + 1} pages or ` : ''}reduce content
+              </Box>
+              )}
 
-                  {/* Page Count Selector */}
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center',
-                    mb: 2,
-                    gap: 1.5
-                  }}>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      Pages:
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                      {[1, 2, 3, 4, 5].map((count) => (
-                        <Box 
-                          key={count}
-                          onClick={() => handlePageCountChange(count as PageCountType)}
-                          sx={{
-                            width: 28,
-                            height: 28,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: `1px solid ${count === pageCount ? '#1976d2' : 'rgba(0,0,0,0.12)'}`,
-                            borderRadius: '4px',
-                            backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.1)' : 'white',
-                            color: count === pageCount ? '#1976d2' : 'text.secondary',
-                            fontWeight: count === pageCount ? 'bold' : 'normal',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              borderColor: '#1976d2',
-                              backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.15)' : 'rgba(25, 118, 210, 0.05)',
-                            }
-                          }}
-                        >
-                          {count}
-                        </Box>
-                      ))}
+              {/* Page Count Selector */}
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                mb: 2,
+                gap: 1.5
+              }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Pages:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  {[1, 2, 3, 4, 5].map((count) => (
+                    <Box 
+                      key={count}
+                      onClick={() => handlePageCountChange(count as PageCountType)}
+                      sx={{
+                        width: 28,
+                        height: 28,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: `1px solid ${count === pageCount ? '#1976d2' : 'rgba(0,0,0,0.12)'}`,
+                        borderRadius: '4px',
+                        backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.1)' : 'white',
+                        color: count === pageCount ? '#1976d2' : 'text.secondary',
+                        fontWeight: count === pageCount ? 'bold' : 'normal',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          borderColor: '#1976d2',
+                          backgroundColor: count === pageCount ? 'rgba(25, 118, 210, 0.15)' : 'rgba(25, 118, 210, 0.05)',
+                        }
+                      }}
+                    >
+                      {count}
                     </Box>
-                    {contentOverflow && pageCount < 5 && (
-                      <Button 
-                        size="small"
-                        variant="text"
-                        onClick={() => handlePageCountChange(Math.min(5, pageCount + 1) as PageCountType)}
-                        sx={{ 
-                          minWidth: 'auto', 
-                          p: 0.5, 
-                          fontSize: '0.75rem',
-                          color: '#1976d2',
-                          '&:hover': {
-                            backgroundColor: 'rgba(25, 118, 210, 0.05)',
-                          }
-                        }}
-                      >
-                        Add page
-                      </Button>
-                    )}
-                  </Box>
-
-          <Box ref={resumeRef}>
-            <Resume
-              data={resumeData}
-              fontFamily={selectedFont}
-              template={selectedTemplate}
-                      pageCount={pageCount}
-                      onPageOverflow={handlePageOverflow}
-            />
-          </Box>
+                  ))}
                 </Box>
-              </Paper>
+                {contentOverflow && pageCount < 5 && (
+                  <Button 
+                    size="small"
+                    variant="text"
+                    onClick={() => handlePageCountChange(Math.min(5, pageCount + 1) as PageCountType)}
+                    sx={{ 
+                      minWidth: 'auto', 
+                      p: 0.5, 
+                      fontSize: '0.75rem',
+                      color: '#1976d2',
+                      '&:hover': {
+                        backgroundColor: 'rgba(25, 118, 210, 0.05)',
+                      }
+                    }}
+                  >
+                    Add page
+                  </Button>
+                )}
+              </Box>
+
+              <Box ref={resumeRef}>
+                <Resume
+                  data={resumeData} 
+                  fontFamily={selectedFont}
+                  template={selectedTemplate}
+                  pageCount={pageCount}
+                  onPageOverflow={handlePageOverflow}
+                />
+              </Box>
+            </Box>
+          </Paper>
         </Box>
       </Box>
 
@@ -1981,20 +2004,10 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
           sx={{
             backgroundColor: '#4caf50',
             '&:hover': { backgroundColor: '#388e3c' },
-            mr: 2
+            px: 4
           }}
         >
           Download Resume
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleOpenCoverLetterDialog}
-          sx={{
-            backgroundColor: '#2196f3',
-            '&:hover': { backgroundColor: '#1976d2' },
-          }}
-        >
-          Create Cover Letter
         </Button>
       </Box>
     </Container>
@@ -2027,11 +2040,12 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
       sx: {
         borderRadius: 2,
         overflow: 'hidden',
+        boxShadow: '0 8px 32px rgba(76, 175, 80, 0.2)',
       }
     }}
   >
     <DialogTitle sx={{ 
-      background: 'linear-gradient(135deg, #1976d2, #2196f3)',
+      background: 'linear-gradient(135deg, #4caf50, #81c784)',
       color: 'white',
       py: 2.5,
       display: 'flex',
@@ -2039,6 +2053,7 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
       alignItems: 'center'
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <span role="img" aria-label="cover letter" style={{ fontSize: '1.5rem' }}>📝</span>
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
           Create Professional Cover Letter
         </Typography>
@@ -2276,14 +2291,13 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
             </Box>
           </Box>
           
-          <Grid container spacing={2}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Recipient Info */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
-                Recipient Information
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
+              Recipient Information
+            </Typography>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
                 label="Company Name"
@@ -2291,8 +2305,6 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 onChange={(e) => handleCoverLetterDataChange('recipientCompany', e.target.value)}
                 required
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Recipient Name"
@@ -2300,8 +2312,9 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 onChange={(e) => handleCoverLetterDataChange('recipientName', e.target.value)}
                 placeholder="Hiring Manager"
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
                 label="Job Title"
@@ -2309,23 +2322,20 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 onChange={(e) => handleCoverLetterDataChange('jobTitle', e.target.value)}
                 required
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Job ID (Optional)"
                 value={coverLetterData.jobId || ''}
                 onChange={(e) => handleCoverLetterDataChange('jobId', e.target.value)}
               />
-            </Grid>
+            </Box>
             
             {/* Sender Info */}
-            <Grid item xs={12} sx={{ mt: 2 }}>
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
-                Your Information
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'medium' }}>
+              Your Information
+            </Typography>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
                 label="Your Name"
@@ -2333,16 +2343,15 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 onChange={(e) => handleCoverLetterDataChange('senderName', e.target.value)}
                 required
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Your Address"
                 value={coverLetterData.senderAddress}
                 onChange={(e) => handleCoverLetterDataChange('senderAddress', e.target.value)}
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
                 label="City, State"
@@ -2350,8 +2359,6 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 onChange={(e) => handleCoverLetterDataChange('senderCity', e.target.value)}
                 required
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Email"
@@ -2359,8 +2366,9 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 onChange={(e) => handleCoverLetterDataChange('senderEmail', e.target.value)}
                 required
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
                 label="Phone"
@@ -2368,16 +2376,14 @@ I look forward to the opportunity to discuss how my qualifications can benefit y
                 onChange={(e) => handleCoverLetterDataChange('senderPhone', e.target.value)}
                 required
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Date"
                 value={coverLetterData.date}
                 onChange={(e) => handleCoverLetterDataChange('date', e.target.value)}
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Box>
       )}
     </DialogContent>
